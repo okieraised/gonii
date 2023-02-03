@@ -526,7 +526,7 @@ func MakeEmptyImageFromImg(img *Nii) ([]byte, error) {
 		return nil, errors.New("NIfTI image structure nil")
 	}
 
-	// Need at least nx, ny
+	// Need at least Nx, Ny
 	if img.Nx == 0 {
 		return nil, errors.New("x dimension must not be zero")
 	}

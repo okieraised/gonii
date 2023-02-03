@@ -1,6 +1,12 @@
 package nifti
 
 const (
+	INVALID = "INVALID"
+	UNKNOWN = "UNKNOWN"
+	ILLEGAL = "ILLEGAL"
+)
+
+const (
 	NIFTI_EXT            = ".nii"
 	NIFTI_COMPRESSED_EXT = ".gz"
 )
@@ -90,7 +96,7 @@ const (
 )
 
 var OrietationToString = map[int]string{
-	NIFTI_UNKNOWN_ORIENT: "Unknown",
+	NIFTI_UNKNOWN_ORIENT: UNKNOWN,
 	NIFTI_L2R:            "Left-to-Right",
 	NIFTI_R2L:            "Right-to-Left",
 	NIFTI_P2A:            "Posterior-to-Anterior",
@@ -191,7 +197,7 @@ const (
 )
 
 var NiiSliceAcquistionInfo = map[int32]string{
-	NIFTI_SLICE_UNKNOWN:  "Unknown",
+	NIFTI_SLICE_UNKNOWN:  UNKNOWN,
 	NIFTI_SLICE_SEQ_INC:  "Sequential, increasing",
 	NIFTI_SLICE_SEQ_DEC:  "Sequential, decreasing",
 	NIFTI_SLICE_ALT_INC:  "Interleaved, increasing, starting at the 1st mri slice",
@@ -214,7 +220,7 @@ const (
 )
 
 var NiiMeasurementUnits = map[uint8]string{
-	NIFTI_UNITS_UNKNOWN: "unknown",
+	NIFTI_UNITS_UNKNOWN: UNKNOWN,
 	NIFTI_UNITS_METER:   "meter",
 	NIFTI_UNITS_MM:      "millimeter",
 	NIFTI_UNITS_MICRON:  "micrometer",

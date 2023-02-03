@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"github.com/okieraised/gonii/internal/system"
-	"github.com/okieraised/gonii/pkg/matrix"
 	"math"
 	"os"
 	"strings"
@@ -17,38 +16,6 @@ type Writer interface {
 	WriteToFile() error
 	// GetNiiData returns the current NIfTI image data
 	GetNiiData() *Nii
-	// GetVoxels returns the 1-D slices of voxel values as float64 type
-	GetVoxels() *Voxels
-	// SetAt sets the new value at (x, y, z, t) location
-	SetAt(newVal float64, x, y, z, t int64) error
-	// SetSliceCode sets the new slice code of the NIFTI image
-	SetSliceCode(sliceCode int32) error
-	// SetQFormCode sets the new QForm code
-	SetQFormCode(qFormCode int32) error
-	// SetSFormCode sets the new SForm code
-	SetSFormCode(sFormCode int32) error
-	// SetDatatype sets the new NIfTI datatype
-	SetDatatype(datatype int32) error
-	// SetAffine sets the new 4x4 affine matrix
-	SetAffine(mat matrix.DMat44)
-	// SetDescrip sets the new description
-	SetDescrip(descrip string) error
-	// SetIntentName sets the new intent name
-	SetIntentName(intentName string) error
-	// SetSliceDuration sets the new slice duration info
-	SetSliceDuration(sliceDuration float64)
-	// SetSliceStart sets the new slice start info
-	SetSliceStart(sliceStart int64)
-	// SetSliceEnd sets the new slice end info
-	SetSliceEnd(sliceEnd int64)
-	// SetXYZUnits sets the new spatial unit of measurements
-	SetXYZUnits(xyzUnit int32)
-	// SetTimeUnits sets the new temporal unit of measurements
-	SetTimeUnits(timeUnit int32)
-	// SetVolume set the NIfTI image bytes to a user-defined byte slice
-	SetVolume(vol []byte) error
-	// SetVoxelToRawVolume converts the float64 slice of voxel back to its corresponding byte slice
-	SetVoxelToRawVolume(vox *Voxels) error
 }
 
 // NiiWriter define the NIfTI writer structure.
@@ -442,83 +409,4 @@ func (w *NiiWriter) convertImageToHeader() error {
 // GetNiiData returns the current NIfTI image data
 func (w *NiiWriter) GetNiiData() *Nii {
 	return w.niiData
-}
-
-// SetAt sets the new value at (x, y, z, t) location
-func (w *NiiWriter) SetAt(newVal float64, x, y, z, t int64) error {
-	return w.niiData.setAt(newVal, x, y, z, t)
-}
-
-// SetSliceCode sets the new slice code of the NIFTI image
-func (w *NiiWriter) SetSliceCode(sliceCode int32) error {
-	return w.niiData.setSliceCode(sliceCode)
-}
-
-// SetQFormCode sets the new QForm code
-func (w *NiiWriter) SetQFormCode(qFormCode int32) error {
-	return w.niiData.setQFormCode(qFormCode)
-}
-
-// SetSFormCode sets the new SForm code
-func (w *NiiWriter) SetSFormCode(sFormCode int32) error {
-	return w.niiData.setSFormCode(sFormCode)
-}
-
-// SetDatatype sets the new NIfTI datatype
-func (w *NiiWriter) SetDatatype(datatype int32) error {
-	return w.niiData.setDatatype(datatype)
-}
-
-// SetAffine sets the new 4x4 affine matrix
-func (w *NiiWriter) SetAffine(mat matrix.DMat44) {
-	w.niiData.setAffine(mat)
-}
-
-// SetDescrip returns the description with trailing null bytes removed
-func (w *NiiWriter) SetDescrip(descrip string) error {
-	return w.niiData.setDescrip(descrip)
-}
-
-// SetIntentName sets the new intent name
-func (w *NiiWriter) SetIntentName(intentName string) error {
-	return w.niiData.setIntentName(intentName)
-}
-
-// SetSliceDuration sets the new slice duration info
-func (w *NiiWriter) SetSliceDuration(sliceDuration float64) {
-	w.niiData.setSliceDuration(sliceDuration)
-}
-
-// SetSliceStart sets the new slice start info
-func (w *NiiWriter) SetSliceStart(sliceStart int64) {
-	w.niiData.setSliceStart(sliceStart)
-}
-
-// SetSliceEnd sets the new slice end info
-func (w *NiiWriter) SetSliceEnd(sliceEnd int64) {
-	w.niiData.setSliceEnd(sliceEnd)
-}
-
-// SetXYZUnits sets the new spatial unit of measurements
-func (w *NiiWriter) SetXYZUnits(xyzUnit int32) {
-	w.niiData.setXYZUnits(xyzUnit)
-}
-
-// SetTimeUnits sets the new temporal unit of measurements
-func (w *NiiWriter) SetTimeUnits(timeUnit int32) {
-	w.niiData.setTimeUnits(timeUnit)
-}
-
-func (w *NiiWriter) SetVolume(vol []byte) error {
-	return w.niiData.setVolume(vol)
-}
-
-// GetVoxels returns the 1-D slices of voxel value as float64 type
-func (w *NiiWriter) GetVoxels() *Voxels {
-	return w.niiData.getVoxel()
-}
-
-// SetVoxelToRawVolume converts the float64 slice of voxel back to its corresponding byte slice
-func (w *NiiWriter) SetVoxelToRawVolume(vox *Voxels) error {
-	return w.niiData.setVoxelToRawVolume(vox)
 }

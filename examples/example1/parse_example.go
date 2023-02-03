@@ -1,15 +1,3 @@
-# gonii
-Standalone, pure golang NIfTI file parser that provide functionalities to read and write NIfTI file format (including NIfTI-1 and NIfTI-2)
-
-** This package is under active development and can be in a broken state. Please use the latest released version **
-
-To install this package, run:
-```shell
-go get github.com/okieraised/gonii
-```
-
-To parse a single NIfTI file:
-```go
 package main
 
 import (
@@ -43,9 +31,3 @@ func main() {
 	// to see the transformed value as a float64 slice
 	fmt.Println(voxels.GetDataset()[60000:70000])
 }
-```
-
-
-## TODO
-- [ ] Improve NIfTI reader for large file size
-- [ ] Improve NIfTI writer to export as NIfTI-2 format

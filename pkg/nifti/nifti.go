@@ -10,100 +10,145 @@ import (
 	"strings"
 )
 
-const (
-	INVALID = "INVALID"
-	UNKNOWN = "UNKNOWN"
-	ILLEGAL = "ILLEGAL"
-)
-
 // Nii defines the structure of the NIFTI-1 data for I/O purpose
 type Nii struct {
-	NDim          int64            // last dimension greater than 1 (1..7)
-	Nx            int64            // dimensions of grid array
-	Ny            int64            // dimensions of grid array
-	Nz            int64            // dimensions of grid array
-	Nt            int64            // dimensions of grid array
-	Nu            int64            // dimensions of grid array
-	Nv            int64            // dimensions of grid array
-	Nw            int64            // dimensions of grid array
-	Dim           [8]int64         // dim[0] = ndim, dim[1] = nx, etc
-	NVox          int64            // number of voxels = nx*ny*nz*...*nw
-	NByPer        int32            // bytes per voxel, matches datatype (Datatype)
-	Datatype      int32            // type of data in voxels: DT_* code
-	Dx            float64          // grid spacings
-	Dy            float64          // grid spacings
-	Dz            float64          // grid spacings
-	Dt            float64          // grid spacings
-	Du            float64          // grid spacings
-	Dv            float64          // grid spacings
-	Dw            float64          // grid spacings tEStataILSTERIOn
-	PixDim        [8]float64       // pixdim[1]=dx, etc
-	SclSlope      float64          // scaling parameter: slope
-	SclInter      float64          // scaling parameter: intercept
-	CalMin        float64          // calibration parameter: minimum
-	CalMax        float64          // calibration parameter: maximum
-	QformCode     int32            // codes for (x,y,z) space meaning
-	SformCode     int32            // codes for (x,y,z) space meaning
-	FreqDim       int32            // indices (1,2,3, or 0) for MRI
-	PhaseDim      int32            // directions in dim[]/pixdim[]
-	SliceDim      int32            // directions in dim[]/pixdim[]
-	SliceCode     int32            // code for slice timing pattern
-	SliceStart    int64            // index for start of slices
-	SliceEnd      int64            // index for end of slices
-	SliceDuration float64          // time between individual slices
-	QuaternB      float64          // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
-	QuaternC      float64          // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
-	QuaternD      float64          // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
-	QoffsetX      float64          // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
-	QoffsetY      float64          // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
-	QoffsetZ      float64          // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
-	QFac          float64          // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
-	QtoXYZ        matrix.DMat44    // qform: transform (i,j,k) to (x,y,z)
-	QtoIJK        matrix.DMat44    // qform: transform (x,y,z) to (i,j,k)
-	StoXYZ        matrix.DMat44    // sform: transform (i,j,k) to (x,y,z)
-	StoIJK        matrix.DMat44    // sform: transform (x,y,z) to (i,j,k)
-	TOffset       float64          // time coordinate offset
-	XYZUnits      int32            // dx,dy,dz units: NIFTI_UNITS_* code
-	TimeUnits     int32            // dt units: NIFTI_UNITS_* code
-	NiftiType     int32            // 0==Analyze, 1==NIFTI-1 (file), 2==NIFTI-1 (2 files), 3==NIFTI-ASCII (1 file)
-	IntentCode    int32            // statistic type (or something)
-	IntentP1      float64          // intent parameters
-	IntentP2      float64          // intent parameters
-	IntentP3      float64          // intent parameters
-	IntentName    [16]byte         // optional description of intent data
-	Descrip       [80]byte         // optional text to describe dataset
-	AuxFile       [24]byte         // auxiliary filename
-	FName         *byte            // header filename
-	IName         *byte            // image filename
-	INameOffset   int32            // offset into IName where data start
-	SwapSize      int32            // swap unit in image data (might be 0)
-	ByteOrder     binary.ByteOrder // byte order on disk (MSB_ or LSB_FIRST)
-	Volume        []byte           // slice of data: nbyper*nvox bytes
-	NumExt        int32            // number of extensions in extList
-	Nifti1Ext     []Nifti1Ext      // array of extension structs (with data)
-	IJKOrient     [3]int32         // self-add. Orientation ini, j, k coordinate
-	Affine        matrix.DMat44    // self-add. Affine matrix
-	VoxOffset     float64          // self-add. Voxel offset
-	Version       int              // self-add. Used for version identification when writing
+	NDim          int64            `json:"ndim"`           // last dimension greater than 1 (1..7)
+	Nx            int64            `json:"Nx"`             // dimensions of grid array
+	Ny            int64            `json:"Ny"`             // dimensions of grid array
+	Nz            int64            `json:"nz"`             // dimensions of grid array
+	Nt            int64            `json:"nt"`             // dimensions of grid array
+	Nu            int64            `json:"nu"`             // dimensions of grid array
+	Nv            int64            `json:"nv"`             // dimensions of grid array
+	Nw            int64            `json:"nw"`             // dimensions of grid array
+	Dim           [8]int64         `json:"dim"`            // dim[0] = ndim, dim[1] = Nx, etc
+	NVox          int64            `json:"nvox"`           // number of voxels = Nx*Ny*nz*...*nw
+	NByPer        int32            `json:"nbyper"`         // bytes per voxel, matches datatype (Datatype)
+	Datatype      int32            `json:"datatype"`       // type of data in voxels: DT_* code
+	Dx            float64          `json:"dx"`             // grid spacings
+	Dy            float64          `json:"dy"`             // grid spacings
+	Dz            float64          `json:"dz"`             // grid spacings
+	Dt            float64          `json:"dt"`             // grid spacings
+	Du            float64          `json:"du"`             // grid spacings
+	Dv            float64          `json:"dv"`             // grid spacings
+	Dw            float64          `json:"dw"`             // grid spacings
+	PixDim        [8]float64       `json:"pix_dim"`        // pixdim[1]=dx, etc
+	SclSlope      float64          `json:"scl_slope"`      // scaling parameter: slope
+	SclInter      float64          `json:"scl_inter"`      // scaling parameter: intercept
+	CalMin        float64          `json:"cal_min"`        // calibration parameter: minimum
+	CalMax        float64          `json:"cal_max"`        // calibration parameter: maximum
+	QformCode     int32            `json:"qform_code"`     // codes for (x,y,z) space meaning
+	SformCode     int32            `json:"sform_code"`     // codes for (x,y,z) space meaning
+	FreqDim       int32            `json:"freq_dim"`       // indices (1,2,3, or 0) for MRI
+	PhaseDim      int32            `json:"phase_dim"`      // directions in dim[]/pixdim[]
+	SliceDim      int32            `json:"slice_dim"`      // directions in dim[]/pixdim[]
+	SliceCode     int32            `json:"slice_code"`     // code for slice timing pattern
+	SliceStart    int64            `json:"slice_start"`    // index for start of slices
+	SliceEnd      int64            `json:"slice_end"`      // index for end of slices
+	SliceDuration float64          `json:"slice_duration"` // time between individual slices
+	QuaternB      float64          `json:"quatern_b"`      // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
+	QuaternC      float64          `json:"quatern_c"`      // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
+	QuaternD      float64          `json:"quatern_d"`      // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
+	QoffsetX      float64          `json:"qoffset_x"`      // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
+	QoffsetY      float64          `json:"qoffset_y"`      // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
+	QoffsetZ      float64          `json:"qoffset_z"`      // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
+	QFac          float64          `json:"q_fac"`          // Quaternion transform parameters [when writing a dataset, these are used for qform, NOT qto_xyz]
+	QtoXYZ        matrix.DMat44    `json:"qto_xyz"`        // qform: transform (i,j,k) to (x,y,z)
+	QtoIJK        matrix.DMat44    `json:"qto_ijk"`        // qform: transform (x,y,z) to (i,j,k)
+	StoXYZ        matrix.DMat44    `json:"sto_xyz"`        // sform: transform (i,j,k) to (x,y,z)
+	StoIJK        matrix.DMat44    `json:"sto_ijk"`        // sform: transform (x,y,z) to (i,j,k)
+	TOffset       float64          `json:"t_offset"`       // time coordinate offset
+	XYZUnits      int32            `json:"xyz_units"`      // dx,dy,dz units: NIFTI_UNITS_* code
+	TimeUnits     int32            `json:"time_units"`     // dt units: NIFTI_UNITS_* code
+	NiftiType     int32            `json:"nifti_type"`     // 0==Analyze, 1==NIFTI-1 (file), 2==NIFTI-1 (2 files), 3==NIFTI-ASCII (1 file)
+	IntentCode    int32            `json:"intent_code"`    // statistic type (or something)
+	IntentP1      float64          `json:"intent_p1"`      // intent parameters
+	IntentP2      float64          `json:"intent_p2"`      // intent parameters
+	IntentP3      float64          `json:"intent_p3"`      // intent parameters
+	IntentName    [16]byte         `json:"intent_name"`    // optional description of intent data
+	Descrip       [80]byte         `json:"descrip"`        // optional text to describe dataset
+	AuxFile       [24]byte         `json:"aux_file"`       // auxiliary filename
+	FName         *byte            `json:"f_name"`         // header filename
+	IName         *byte            `json:"i_name"`         // image filename
+	INameOffset   int32            `json:"i_name_offset"`  // offset into IName where data start
+	SwapSize      int32            `json:"swap_size"`      // swap unit in image data (might be 0)
+	ByteOrder     binary.ByteOrder `json:"byte_order"`     // byte order on disk (MSB_ or LSB_FIRST)
+	Volume        []byte           `json:"volume"`         // slice of data: nbyper*nvox bytes
+	NumExt        int32            `json:"num_ext"`        // number of extensions in extList
+	Nifti1Ext     []Nifti1Ext      `json:"nifti1_ext"`     // array of extension structs (with data)
+	IJKOrient     [3]int32         `json:"ijk_orient"`     // self-add. Orientation ini, j, k coordinate
+	Affine        matrix.DMat44    `json:"affine"`         // self-add. Affine matrix
+	VoxOffset     float64          `json:"vox_offset"`     // self-add. Voxel offset
+	Version       int              `json:"version"`        // self-add. Used for version identification when writing
 }
 
+// Nifti1Ext defines the NIfTI-1 extension
 type Nifti1Ext struct {
-	ECode int32
-	Edata []byte
-	ESize int32
+	ECode int32  `json:"e_code"`
+	EData []byte `json:"e_data"`
+	ESize int32  `json:"e_size"`
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 // Get methods
 //----------------------------------------------------------------------------------------------------------------------
 
-// getSliceCode returns the slice code of the NIFTI image
-func (n *Nii) getSliceCode() string {
+// GetQuaternB returns the QuaternB parameter
+func (n *Nii) GetQuaternB() float64 {
+	return n.QuaternB
+}
+
+// GetQuaternC returns the QuaternC parameter
+func (n *Nii) GetQuaternC() float64 {
+	return n.QuaternC
+}
+
+// GetQuaternD returns the QuaternD parameter
+func (n *Nii) GetQuaternD() float64 {
+	return n.QuaternD
+}
+
+// GetQoffsetX returns the QoffsetX parameter
+func (n *Nii) GetQoffsetX() float64 {
+	return n.QoffsetX
+}
+
+// GetQoffsetY returns the QoffsetY parameter
+func (n *Nii) GetQoffsetY() float64 {
+	return n.QoffsetY
+}
+
+// GetQoffsetZ returns the QoffsetZ parameter
+func (n *Nii) GetQoffsetZ() float64 {
+	return n.QoffsetZ
+}
+
+// GetQtoXYZMat returns the QtoXYZ matrix as [4][4]float64
+func (n *Nii) GetQtoXYZMat() matrix.DMat44 {
+	return n.QtoXYZ
+}
+
+// GetQtoIJKMat returns the QtoIJK matrix as [4][4]float64
+func (n *Nii) GetQtoIJKMat() matrix.DMat44 {
+	return n.QtoIJK
+}
+
+// GetStoXYZMat returns the StoXYZ matrix as [4][4]float64
+func (n *Nii) GetStoXYZMat() matrix.DMat44 {
+	return n.StoXYZ
+}
+
+// GetStoIJKMat returns the StoIJK matrix as [4][4]float64
+func (n *Nii) GetStoIJKMat() matrix.DMat44 {
+	return n.StoIJK
+}
+
+// GetSliceCode returns the slice code of the NIFTI image
+func (n *Nii) GetSliceCode() string {
 	return getSliceCode(n.SliceCode)
 }
 
-// getQFormCode returns the QForm code
-func (n *Nii) getQFormCode() string {
+// GetQFormCode returns the QformCode code parameter
+func (n *Nii) GetQFormCode() string {
 	qForm, ok := NiiPatientOrientationInfo[n.QformCode]
 	if !ok {
 		return INVALID
@@ -111,8 +156,8 @@ func (n *Nii) getQFormCode() string {
 	return qForm
 }
 
-// getSFormCode returns the SForm code
-func (n *Nii) getSFormCode() string {
+// GetSFormCode returns the SformCode parameter
+func (n *Nii) GetSFormCode() string {
 	sForm, ok := NiiPatientOrientationInfo[n.SformCode]
 	if !ok {
 		return INVALID
@@ -120,13 +165,13 @@ func (n *Nii) getSFormCode() string {
 	return sForm
 }
 
-// getDatatype returns the corresponding NIfTI datatype
-func (n *Nii) getDatatype() string {
+// GetDatatype returns the corresponding NIfTI datatype
+func (n *Nii) GetDatatype() string {
 	return getDatatype(n.Datatype)
 }
 
-// getOrientation returns the image orientation
-func (n *Nii) getOrientation() [3]string {
+// GetOrientation returns the image orientation
+func (n *Nii) GetOrientation() [3]string {
 	res := [3]string{}
 
 	ijk := n.IJKOrient
@@ -152,13 +197,13 @@ func (n *Nii) getOrientation() [3]string {
 	return res
 }
 
-func (n *Nii) getVoxel() *Voxels {
+func (n *Nii) GetVoxel() *Voxels {
 	vox := NewVoxels(n.Nx, n.Ny, n.Nz, n.Nt, n.Datatype)
 	for x := int64(0); x < n.Nx; x++ {
 		for y := int64(0); y < n.Ny; y++ {
 			for z := int64(0); z < n.Nz; z++ {
 				for t := int64(0); t < n.Nt; t++ {
-					vox.Set(x, y, z, t, n.getAt(x, y, z, t))
+					vox.Set(x, y, z, t, n.GetAt(x, y, z, t))
 				}
 			}
 		}
@@ -166,8 +211,8 @@ func (n *Nii) getVoxel() *Voxels {
 	return vox
 }
 
-// getAt returns the value at (x, y, z, t) location
-func (n *Nii) getAt(x, y, z, t int64) float64 {
+// GetAt returns the value at (x, y, z, t) location
+func (n *Nii) GetAt(x, y, z, t int64) float64 {
 	tIndex := t * n.Nx * n.Ny * n.Nz
 	zIndex := n.Nx * n.Ny * z
 	yIndex := n.Nx * y
@@ -197,29 +242,25 @@ func (n *Nii) getAt(x, y, z, t int64) float64 {
 		case DT_UINT16:
 			value = float64(v)
 		}
-	case 3, 4: // This fits Uint32
+	case 3: // This fits Uint32
 		var v uint32
 		switch n.ByteOrder {
 		case binary.LittleEndian:
-			switch len(dataPoint) {
-			case 3:
-				v = uint32(dataPoint[0]) | uint32(dataPoint[1])<<8 | uint32(dataPoint[2])<<16
-				value = float64(math.Float32frombits(v))
-			case 4:
-				v = binary.LittleEndian.Uint32(dataPoint)
-				value = uint32ToFloat64(v, n.Datatype)
-			}
+			v = uint32(dataPoint[0]) | uint32(dataPoint[1])<<8 | uint32(dataPoint[2])<<16
 		case binary.BigEndian:
-			switch len(dataPoint) {
-			case 3:
-				v = uint32(dataPoint[2]) | uint32(dataPoint[1])<<8 | uint32(dataPoint[0])<<16
-				value = float64(math.Float32frombits(v))
-			case 4:
-				v = binary.BigEndian.Uint32(dataPoint)
-				value = uint32ToFloat64(v, n.Datatype)
-			}
+			v = uint32(dataPoint[2]) | uint32(dataPoint[1])<<8 | uint32(dataPoint[0])<<16
 		}
-	case 8:
+		value = float64(math.Float32frombits(v))
+	case 4: // This fits Uint32
+		var v uint32
+		switch n.ByteOrder {
+		case binary.LittleEndian:
+			v = binary.LittleEndian.Uint32(dataPoint)
+		case binary.BigEndian:
+			v = binary.BigEndian.Uint32(dataPoint)
+		}
+		value = uint32ToFloat64(v, n.Datatype)
+	case 8: // THis fits Uint64
 		var v uint64
 		switch n.ByteOrder {
 		case binary.LittleEndian:
@@ -239,8 +280,8 @@ func (n *Nii) getAt(x, y, z, t int64) float64 {
 	return value
 }
 
-// getTimeSeries returns the time-series of a point
-func (n *Nii) getTimeSeries(x, y, z int64) ([]float64, error) {
+// GetTimeSeries returns the time-series of a point
+func (n *Nii) GetTimeSeries(x, y, z int64) ([]float64, error) {
 	timeSeries := make([]float64, 0, n.Dim[4])
 
 	sliceX := n.Nx
@@ -260,13 +301,13 @@ func (n *Nii) getTimeSeries(x, y, z int64) ([]float64, error) {
 	}
 
 	for t := 0; t < int(n.Dim[4]); t++ {
-		timeSeries = append(timeSeries, n.getAt(x, y, z, int64(t)))
+		timeSeries = append(timeSeries, n.GetAt(x, y, z, int64(t)))
 	}
 	return timeSeries, nil
 }
 
-// getSlice returns the image in x-y dimension
-func (n *Nii) getSlice(z, t int64) ([][]float64, error) {
+// GetSlice returns the image in x-y dimension
+func (n *Nii) GetSlice(z, t int64) ([][]float64, error) {
 	sliceX := n.Nx
 	sliceY := n.Ny
 	sliceZ := n.Nz
@@ -286,14 +327,14 @@ func (n *Nii) getSlice(z, t int64) ([][]float64, error) {
 	}
 	for x := 0; x < int(sliceX); x++ {
 		for y := 0; y < int(sliceY); y++ {
-			slice[x][y] = n.getAt(int64(x), int64(y), z, t)
+			slice[x][y] = n.GetAt(int64(x), int64(y), z, t)
 		}
 	}
 	return slice, nil
 }
 
-// getVolume return the whole image volume at time t
-func (n *Nii) getVolume(t int64) ([][][]float64, error) {
+// GetVolume return the whole image volume at time t
+func (n *Nii) GetVolume(t int64) ([][][]float64, error) {
 	sliceX := n.Nx
 	sliceY := n.Ny
 	sliceZ := n.Nz
@@ -312,15 +353,15 @@ func (n *Nii) getVolume(t int64) ([][][]float64, error) {
 	for x := 0; x < int(sliceX); x++ {
 		for y := 0; y < int(sliceY); y++ {
 			for z := 0; z < int(sliceZ); z++ {
-				volume[x][y][z] = n.getAt(int64(x), int64(y), int64(z), t)
+				volume[x][y][z] = n.GetAt(int64(x), int64(y), int64(z), t)
 			}
 		}
 	}
 	return volume, nil
 }
 
-// getUnitsOfMeasurements returns the spatial and temporal units of measurements
-func (n *Nii) getUnitsOfMeasurements() ([2]string, error) {
+// GetUnitsOfMeasurements returns the spatial and temporal units of measurements
+func (n *Nii) GetUnitsOfMeasurements() ([2]string, error) {
 	units := [2]string{}
 	spatialUnit, ok := NiiMeasurementUnits[uint8(n.XYZUnits)]
 	if !ok {
@@ -338,13 +379,13 @@ func (n *Nii) getUnitsOfMeasurements() ([2]string, error) {
 	return units, nil
 }
 
-// getAffine returns the 4x4 affine matrix
-func (n *Nii) getAffine() matrix.DMat44 {
+// GetAffine returns the 4x4 affine matrix
+func (n *Nii) GetAffine() matrix.DMat44 {
 	return n.Affine
 }
 
-// getImgShape returns the image shape in terms of x, y, z, t
-func (n *Nii) getImgShape() [4]int64 {
+// GetImgShape returns the image shape in terms of x, y, z, t
+func (n *Nii) GetImgShape() [4]int64 {
 	dim := [4]int64{}
 
 	for index, _ := range dim {
@@ -353,8 +394,8 @@ func (n *Nii) getImgShape() [4]int64 {
 	return dim
 }
 
-// getVoxelSize returns the voxel size of the image
-func (n *Nii) getVoxelSize() [4]float64 {
+// GetVoxelSize returns the voxel size of the image
+func (n *Nii) GetVoxelSize() [4]float64 {
 	size := [4]float64{}
 	for index, _ := range size {
 		size[index] = n.PixDim[index+1]
@@ -362,33 +403,38 @@ func (n *Nii) getVoxelSize() [4]float64 {
 	return size
 }
 
-// getDescrip returns the description with trailing null bytes removed
-func (n *Nii) getDescrip() string {
+// GetDescrip returns the description with trailing null bytes removed
+func (n *Nii) GetDescrip() string {
 	return strings.ReplaceAll(string(n.Descrip[:]), "\x00", "")
 }
 
-// getIntentName returns the intent name with trailing null bytes removed
-func (n *Nii) getIntentName() string {
+// GetIntentName returns the intent name with trailing null bytes removed
+func (n *Nii) GetIntentName() string {
 	return strings.ReplaceAll(string(n.IntentName[:]), "\x00", "")
 }
 
-// getSliceDuration returns the slice duration info
-func (n *Nii) getSliceDuration() float64 {
+// GetAuxFile returns the AuxFile with trailing null bytes removed
+func (n *Nii) GetAuxFile() string {
+	return strings.ReplaceAll(string(n.AuxFile[:]), "\x00", "")
+}
+
+// GetSliceDuration returns the slice duration info
+func (n *Nii) GetSliceDuration() float64 {
 	return n.SliceDuration
 }
 
-// getSliceStart returns the slice start info
-func (n *Nii) getSliceStart() int64 {
+// GetSliceStart returns the slice start info
+func (n *Nii) GetSliceStart() int64 {
 	return n.SliceStart
 }
 
-// getSliceEnd returns the slice end info
-func (n *Nii) getSliceEnd() int64 {
+// GetSliceEnd returns the slice end info
+func (n *Nii) GetSliceEnd() int64 {
 	return n.SliceEnd
 }
 
-// getRawData returns the raw byte array of image
-func (n *Nii) getRawData() []byte {
+// GetRawData returns the raw byte array of image
+func (n *Nii) GetRawData() []byte {
 	return n.Volume
 }
 
@@ -396,8 +442,8 @@ func (n *Nii) getRawData() []byte {
 // Set methods
 //----------------------------------------------------------------------------------------------------------------------
 
-// setSliceCode sets the new slice code of the NIFTI image
-func (n *Nii) setSliceCode(sliceCode int32) error {
+// SetSliceCode sets the new slice code of the NIFTI image
+func (n *Nii) SetSliceCode(sliceCode int32) error {
 	_, ok := NiiSliceAcquistionInfo[sliceCode]
 	if ok {
 		n.SliceCode = sliceCode
@@ -406,8 +452,8 @@ func (n *Nii) setSliceCode(sliceCode int32) error {
 	return fmt.Errorf("unknown sliceCode %d", sliceCode)
 }
 
-// setQFormCode sets the new QForm code
-func (n *Nii) setQFormCode(qFormCode int32) error {
+// SetQFormCode sets the new QForm code
+func (n *Nii) SetQFormCode(qFormCode int32) error {
 	_, ok := NiiPatientOrientationInfo[qFormCode]
 	if ok {
 		n.QformCode = qFormCode
@@ -416,8 +462,8 @@ func (n *Nii) setQFormCode(qFormCode int32) error {
 	return fmt.Errorf("unknown qFormCode %d", qFormCode)
 }
 
-// setSFormCode sets the new SForm code
-func (n *Nii) setSFormCode(sFormCode int32) error {
+// SetSFormCode sets the new SForm code
+func (n *Nii) SetSFormCode(sFormCode int32) error {
 	_, ok := NiiPatientOrientationInfo[n.SformCode]
 	if ok {
 		n.SformCode = sFormCode
@@ -426,8 +472,8 @@ func (n *Nii) setSFormCode(sFormCode int32) error {
 	return fmt.Errorf("unknown sFormCode %d", sFormCode)
 }
 
-// setDatatype sets the new NIfTI datatype
-func (n *Nii) setDatatype(datatype int32) error {
+// SetDatatype sets the new NIfTI datatype
+func (n *Nii) SetDatatype(datatype int32) error {
 	_, ok := ValidDatatype[datatype]
 	if ok {
 		n.Datatype = datatype
@@ -436,13 +482,13 @@ func (n *Nii) setDatatype(datatype int32) error {
 	return fmt.Errorf("unknown datatype value %d", datatype)
 }
 
-// setAffine sets the new 4x4 affine matrix
-func (n *Nii) setAffine(mat matrix.DMat44) {
+// SetAffine sets the new 4x4 affine matrix
+func (n *Nii) SetAffine(mat matrix.DMat44) {
 	n.Affine = mat
 }
 
-// setDescrip returns the description with trailing null bytes removed
-func (n *Nii) setDescrip(descrip string) error {
+// SetDescrip returns the description with trailing null bytes removed
+func (n *Nii) SetDescrip(descrip string) error {
 
 	if len([]byte(descrip)) > 79 {
 		return errors.New("description must be fewer than 80 characters")
@@ -456,48 +502,63 @@ func (n *Nii) setDescrip(descrip string) error {
 	return nil
 }
 
-// setIntentName sets the new intent name
-func (n *Nii) setIntentName(intentName string) error {
+// SetIntentName sets the new intent name
+func (n *Nii) SetIntentName(intentName string) error {
 
 	if len([]byte(intentName)) > 15 {
 		return errors.New("intent name must be fewer than 16 characters")
 	}
 
-	var bDescrip [80]byte
-	copy(bDescrip[:], intentName)
+	var bIntentName [16]byte
+	copy(bIntentName[:], intentName)
 
-	n.Descrip = bDescrip
+	n.IntentName = bIntentName
 
 	return nil
 }
 
-// setSliceDuration sets the new slice duration info
-func (n *Nii) setSliceDuration(sliceDuration float64) {
+// SetAuxFile sets the new AuxFile
+func (n *Nii) SetAuxFile(auxFile string) error {
+
+	if len([]byte(auxFile)) > 24 {
+		return errors.New("AuxFile must be fewer than 24 characters")
+	}
+
+	var bAuxFile [24]byte
+	copy(bAuxFile[:], auxFile)
+
+	n.AuxFile = bAuxFile
+
+	return nil
+}
+
+// SetSliceDuration sets the new slice duration info
+func (n *Nii) SetSliceDuration(sliceDuration float64) {
 	n.SliceDuration = sliceDuration
 }
 
-// setSliceStart sets the new slice start info
-func (n *Nii) setSliceStart(sliceStart int64) {
+// SetSliceStart sets the new slice start info
+func (n *Nii) SetSliceStart(sliceStart int64) {
 	n.SliceStart = sliceStart
 }
 
-// setSliceEnd sets the new slice end info
-func (n *Nii) setSliceEnd(sliceEnd int64) {
+// SetSliceEnd sets the new slice end info
+func (n *Nii) SetSliceEnd(sliceEnd int64) {
 	n.SliceEnd = sliceEnd
 }
 
-// setXYZUnits sets the new spatial unit of measurements
-func (n *Nii) setXYZUnits(xyzUnit int32) {
+// SetXYZUnits sets the new spatial unit of measurements
+func (n *Nii) SetXYZUnits(xyzUnit int32) {
 	n.XYZUnits = xyzUnit
 }
 
-// setTimeUnits sets the new temporal unit of measurements
-func (n *Nii) setTimeUnits(timeUnit int32) {
+// SetTimeUnits sets the new temporal unit of measurements
+func (n *Nii) SetTimeUnits(timeUnit int32) {
 	n.TimeUnits = timeUnit
 }
 
-// setAt sets the new value in bytes at (x, y, z, t) location
-func (n *Nii) setAt(newVal float64, x, y, z, t int64) error {
+// SetAt sets the new value in bytes at (x, y, z, t) location
+func (n *Nii) SetAt(newVal float64, x, y, z, t int64) error {
 
 	tIndex := t * n.Nx * n.Ny * n.Nz
 	zIndex := n.Nx * n.Ny * z
@@ -580,11 +641,11 @@ func (n *Nii) setAt(newVal float64, x, y, z, t int64) error {
 	return nil
 }
 
-// setVolume sets the new volume
-func (n *Nii) setVolume(vol []byte) error {
+// SetVolume sets the new volume
+func (n *Nii) SetVolume(vol []byte) error {
 	var bDataLength int64
 
-	// Need at least nx, ny
+	// Need at least Nx, Ny
 	if n.Nx == 0 {
 		return errors.New("x dimension must not be zero")
 	}
@@ -620,8 +681,8 @@ func (n *Nii) setVolume(vol []byte) error {
 	return nil
 }
 
-// setVoxelToRawVolume converts the 1-D slice of float64 back to byte array
-func (n *Nii) setVoxelToRawVolume(vox *Voxels) error {
+// SetVoxelToRawVolume converts the 1-D slice of float64 back to byte array
+func (n *Nii) SetVoxelToRawVolume(vox *Voxels) error {
 	result := make([]byte, vox.GetRawByteSize(), vox.GetRawByteSize())
 	nByPer := n.NByPer
 

@@ -14,26 +14,25 @@ func TestNiiReader_Parse_SingleFile_Nii1_Int16(t *testing.T) {
 
 	filePath := "./test_data/int16.nii.gz"
 
-	rd, err := NewNiiReader(filePath, WithInMemory(true), WithRetainHeader(true))
+	rd, err := NewNiiReader(filePath, WithRetainHeader(true))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
 
-	assert.Equal(rd.GetDatatype(), "INT16")
+	assert.Equal(rd.GetNiiData().GetDatatype(), "INT16")
+	assert.Equal(rd.GetNiiData().GetDatatype(), "INT16")
+	assert.Equal(rd.GetNiiData().GetImgShape(), [4]int64{240, 240, 155, 1})
+	assert.Equal(rd.GetNiiData().GetQFormCode(), "1: Scanner Anat")
+	assert.Equal(rd.GetNiiData().GetAffine(), matrix.DMat44{
+		M: [4][4]float64{
+			{0, 0, 0, 0},
+			{0, 0, 0, 0},
+			{0, 0, 0, 0},
+			{0, 0, 0, 1},
+		},
+	})
 
-	rd.GetHeader(false)
-
-	fmt.Println("datatype", rd.GetDatatype())
-	fmt.Println("image shape", rd.GetImgShape())
-	fmt.Println("affine", rd.GetAffine())
-	fmt.Println("orientation", rd.GetOrientation())
-	fmt.Println("binary order", rd.GetBinaryOrder())
-	fmt.Println("slice code", rd.GetSliceCode())
-	fmt.Println("qform_code", rd.GetQFormCode())
-	fmt.Println("sform_code", rd.GetSFormCode())
-	fmt.Println("quatern_b", rd.GetQuaternB())
-	fmt.Println("quatern_c", rd.GetQuaternC())
-	fmt.Println("quatern_d", rd.GetQuaternD())
+	assert.Equal(rd.GetNiiData().Dim, [8]int64{3, 240, 240, 155, 1, 1, 1, 1})
 }
 
 func TestNiiReader_Parse_SingleFile_Nii2_LR(t *testing.T) {
@@ -48,7 +47,7 @@ func TestNiiReader_Parse_SingleFile_Nii2_LR(t *testing.T) {
 
 	rd.GetHeader(false)
 
-	assert.Equal(rd.GetOrientation(), [3]string{
+	assert.Equal(rd.GetNiiData().GetOrientation(), [3]string{
 		nifti.OrietationToString[nifti.NIFTI_R2L],
 		nifti.OrietationToString[nifti.NIFTI_P2A],
 		nifti.OrietationToString[nifti.NIFTI_I2S],
@@ -56,7 +55,7 @@ func TestNiiReader_Parse_SingleFile_Nii2_LR(t *testing.T) {
 
 	assert.Equal(rd.GetBinaryOrder(), binary.LittleEndian)
 
-	assert.Equal(rd.GetAffine(), matrix.DMat44{
+	assert.Equal(rd.GetNiiData().GetAffine(), matrix.DMat44{
 		M: [4][4]float64{
 			{-2, 0, 0, 90},
 			{0, 2, 0, -126},
@@ -64,19 +63,9 @@ func TestNiiReader_Parse_SingleFile_Nii2_LR(t *testing.T) {
 			{0, 0, 0, 1},
 		},
 	})
-
-	fmt.Println("datatype", rd.GetDatatype())
-	fmt.Println("image shape", rd.GetImgShape())
-	fmt.Println("affine", rd.GetAffine())
-	fmt.Println("orientation", rd.GetOrientation())
-	fmt.Println("binary order", rd.GetBinaryOrder())
-	fmt.Println("slice code", rd.GetSliceCode())
-	fmt.Println("qform_code", rd.GetQFormCode())
-	fmt.Println("sform_code", rd.GetSFormCode())
-	fmt.Println("quatern_b", rd.GetQuaternB())
-	fmt.Println("quatern_c", rd.GetQuaternC())
-	fmt.Println("quatern_d", rd.GetQuaternD())
-	fmt.Println(rd.GetUnitsOfMeasurements())
+	assert.Equal(rd.GetNiiData().GetDatatype(), "FLOAT32")
+	assert.Equal(rd.GetNiiData().GetSFormCode(), "4: MNI")
+	assert.Equal(rd.GetNiiData().GetQFormCode(), "0: Unknown")
 }
 
 func TestNiiReader_Parse_SingleFile_Nii2_RL(t *testing.T) {
@@ -91,26 +80,23 @@ func TestNiiReader_Parse_SingleFile_Nii2_RL(t *testing.T) {
 
 	rd.GetHeader(false)
 
-	assert.Equal(rd.GetOrientation(), [3]string{
+	assert.Equal(rd.GetNiiData().GetOrientation(), [3]string{
 		nifti.OrietationToString[nifti.NIFTI_L2R],
 		nifti.OrietationToString[nifti.NIFTI_P2A],
 		nifti.OrietationToString[nifti.NIFTI_I2S],
 	})
-
+	assert.Equal(rd.GetNiiData().GetAffine(), matrix.DMat44{
+		M: [4][4]float64{
+			{2, 0, 0, -90},
+			{0, 2, 0, -126},
+			{0, 0, 2, -72},
+			{0, 0, 0, 1},
+		},
+	})
 	assert.Equal(rd.GetBinaryOrder(), binary.LittleEndian)
-
-	fmt.Println("datatype", rd.GetDatatype())
-	fmt.Println("image shape", rd.GetImgShape())
-	fmt.Println("affine", rd.GetAffine())
-	fmt.Println("orientation", rd.GetOrientation())
-	fmt.Println("binary order", rd.GetBinaryOrder())
-	fmt.Println("slice code", rd.GetSliceCode())
-	fmt.Println("qform_code", rd.GetQFormCode())
-	fmt.Println("sform_code", rd.GetSFormCode())
-	fmt.Println("quatern_b", rd.GetQuaternB())
-	fmt.Println("quatern_c", rd.GetQuaternC())
-	fmt.Println("quatern_d", rd.GetQuaternD())
-	fmt.Println(rd.GetUnitsOfMeasurements())
+	assert.Equal(rd.GetNiiData().GetDatatype(), "FLOAT32")
+	assert.Equal(rd.GetNiiData().GetSFormCode(), "4: MNI")
+	assert.Equal(rd.GetNiiData().GetQFormCode(), "0: Unknown")
 }
 
 func TestNewNiiReader_Parse_HeaderImagePair(t *testing.T) {
@@ -124,15 +110,15 @@ func TestNewNiiReader_Parse_HeaderImagePair(t *testing.T) {
 	err = rd.Parse()
 	assert.NoError(err)
 
-	fmt.Println("datatype", rd.GetDatatype())
-	fmt.Println("image shape", rd.GetImgShape())
-	fmt.Println("affine", rd.GetAffine())
-	fmt.Println("orientation", rd.GetOrientation())
+	fmt.Println("datatype", rd.GetNiiData().GetDatatype())
+	fmt.Println("image shape", rd.GetNiiData().GetImgShape())
+	fmt.Println("affine", rd.GetNiiData().GetAffine())
+	fmt.Println("orientation", rd.GetNiiData().GetOrientation())
 	fmt.Println("binary order", rd.GetBinaryOrder())
-	fmt.Println("slice code", rd.GetSliceCode())
-	fmt.Println("qform_code", rd.GetQFormCode())
-	fmt.Println("sform_code", rd.GetSFormCode())
-	fmt.Println("quatern_b", rd.GetQuaternB())
-	fmt.Println("quatern_c", rd.GetQuaternC())
-	fmt.Println("quatern_d", rd.GetQuaternD())
+	fmt.Println("slice code", rd.GetNiiData().GetSliceCode())
+	fmt.Println("qform_code", rd.GetNiiData().GetQFormCode())
+	fmt.Println("sform_code", rd.GetNiiData().GetSFormCode())
+	fmt.Println("quatern_b", rd.GetNiiData().GetQuaternB())
+	fmt.Println("quatern_c", rd.GetNiiData().GetQuaternC())
+	fmt.Println("quatern_d", rd.GetNiiData().GetQuaternD())
 }
