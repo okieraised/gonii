@@ -19,6 +19,8 @@ func TestNiiReader_Parse_SingleFile_Nii1_Int16(t *testing.T) {
 	err = rd.Parse()
 	assert.NoError(err)
 
+	fmt.Println(rd.GetNiiData().GetNVox())
+
 	assert.Equal(rd.GetNiiData().GetDatatype(), "INT16")
 	assert.Equal(rd.GetNiiData().GetDatatype(), "INT16")
 	assert.Equal(rd.GetNiiData().GetImgShape(), [4]int64{240, 240, 155, 1})

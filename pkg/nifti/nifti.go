@@ -437,6 +437,91 @@ func (n *Nii) GetRawData() []byte {
 	return n.Volume
 }
 
+// GetSclSlope returns the SclSlope parameter
+func (n *Nii) GetSclSlope() float64 {
+	return n.SclSlope
+}
+
+// GetSclInter returns the SclInter parameter
+func (n *Nii) GetSclInter() float64 {
+	return n.SclInter
+}
+
+// GetPixDim returns the PixDim parameter
+func (n *Nii) GetPixDim() [8]float64 {
+	return n.PixDim
+}
+
+// GetDim returns the Dim parameter
+func (n *Nii) GetDim() [8]int64 {
+	return n.Dim
+}
+
+// GetNVox returns the NVox parameter
+func (n *Nii) GetNVox() int64 {
+	return n.NVox
+}
+
+// GetQFac returns the QFac parameters
+func (n *Nii) GetQFac() float64 {
+	return n.QFac
+}
+
+// GetTOffset returns the TOffset parameters
+func (n *Nii) GetTOffset() float64 {
+	return n.TOffset
+}
+
+// GetXYZUnits returns the XYZUnits parameters
+func (n *Nii) GetXYZUnits() int32 {
+	return n.XYZUnits
+}
+
+// GetTimeUnits returns the TimeUnits parameters
+func (n *Nii) GetTimeUnits() int32 {
+	return n.TimeUnits
+}
+
+// GetNiftiType returns the NiftiType parameters
+func (n *Nii) GetNiftiType() int32 {
+	return n.NiftiType
+}
+
+// GetIntentCode returns the IntentCode parameters
+func (n *Nii) GetIntentCode() int32 {
+	return n.IntentCode
+}
+
+// GetIntentP1 returns the IntentP1 parameters
+func (n *Nii) GetIntentP1() float64 {
+	return n.IntentP1
+}
+
+// GetIntentP2 returns the IntentP2 parameters
+func (n *Nii) GetIntentP2() float64 {
+	return n.IntentP2
+}
+
+// GetIntentP3 returns the IntentP3 parameters
+func (n *Nii) GetIntentP3() float64 {
+	return n.IntentP3
+}
+
+// GetFreqDim returns the FreqDim parameters
+func (n *Nii) GetFreqDim() int32 {
+	return n.FreqDim
+}
+
+// GetPhaseDim returns the PhaseDim parameters
+func (n *Nii) GetPhaseDim() int32 {
+	return n.PhaseDim
+}
+
+// GetSliceDim returns the SliceDim parameters
+func (n *Nii) GetSliceDim() int32 {
+	return n.SliceDim
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Set methods
 //----------------------------------------------------------------------------------------------------------------------
@@ -554,6 +639,76 @@ func (n *Nii) SetXYZUnits(xyzUnit int32) {
 // SetTimeUnits sets the new temporal unit of measurements
 func (n *Nii) SetTimeUnits(timeUnit int32) {
 	n.TimeUnits = timeUnit
+}
+
+// SetSclSlope sets the SclSlope parameter
+func (n *Nii) SetSclSlope(sclSlope float64) {
+	n.SclSlope = sclSlope
+}
+
+// SetSclInter sets the SclInter parameter
+func (n *Nii) SetSclInter(sclInter float64) {
+	n.SclInter = sclInter
+}
+
+// SetPixDim sets the PixDim parameter
+func (n *Nii) SetPixDim() [8]float64 {
+	return n.PixDim
+}
+
+// SetDim sets the Dim parameter
+func (n *Nii) SetDim(dim [8]int64) {
+	n.Dim = dim
+}
+
+// SetNVox sets the NVox parameter
+func (n *Nii) SetNVox(nVox int64) {
+	n.NVox = nVox
+}
+
+// SetQFac sets the QFac parameters
+func (n *Nii) SetQFac(qFac float64) {
+	n.QFac = qFac
+}
+
+// SetTOffset sets the TOffset parameters
+func (n *Nii) SetTOffset(tOffset float64) {
+	n.TOffset = tOffset
+}
+
+// SetIntentCode sets the IntentCode parameters
+func (n *Nii) SetIntentCode(intentCode int32) {
+	n.IntentCode = intentCode
+}
+
+// SetIntentP1 sets the IntentP1 parameters
+func (n *Nii) SetIntentP1(intentP1 float64) {
+	n.IntentP1 = intentP1
+}
+
+// SetIntentP2 sets the IntentP2 parameters
+func (n *Nii) SetIntentP2(intentP2 float64) {
+	n.IntentP2 = intentP2
+}
+
+// SetIntentP3 sets the IntentP3 parameters
+func (n *Nii) SetIntentP3(intentP3 float64) {
+	n.IntentP3 = intentP3
+}
+
+// SetFreqDim sets the FreqDim parameters
+func (n *Nii) SetFreqDim(freqDim int32) {
+	n.FreqDim = freqDim
+}
+
+// SetPhaseDim sets the PhaseDim parameters
+func (n *Nii) SetPhaseDim(phaseDim int32) {
+	n.PhaseDim = phaseDim
+}
+
+// SetSliceDim sets the SliceDim parameters
+func (n *Nii) SetSliceDim(sliceDim int32) {
+	n.SliceDim = sliceDim
 }
 
 // SetVolume sets the new volume
