@@ -2,18 +2,22 @@ package matrix
 
 import "math"
 
+// FMat44 defines the 4x4 float32 matrix
 type FMat44 struct {
 	M [4][4]float32
 }
 
+// FMat33 defines the 3x3 float32 matrix
 type FMat33 struct {
 	M [3][3]float32
 }
 
+// DMat44 defines the 4x4 double matrix (float64)
 type DMat44 struct {
 	M [4][4]float64
 }
 
+// DMat33 defines the 3x3 double matrix (float64)
 type DMat33 struct {
 	M [3][3]float64
 }

@@ -12,30 +12,26 @@ import (
 type Reader interface {
 	// Parse returns the input NIFTI as header and image data
 	Parse() error
+	// GetDatatype returns the datatype of the NIFTI image
+	GetDatatype() string
 	// GetDescrip returns the description with trailing null bytes removed
 	GetDescrip() string
 	// GetIntentName returns the description with trailing null bytes removed
 	GetIntentName() string
+	// GetImgShape returns the image shape [x, y, z, t]
+	GetImgShape() [4]int64
 	// GetOrientation returns the image orientation
 	GetOrientation() [3]string
 	// GetSliceCode returns the slice code
 	GetSliceCode() string
-	// GetDatatype returns the datatype of the NIFTI image
-	GetDatatype() string
-	// GetSFormCode returns the SForm code string
-	GetSFormCode() string
-	// GetQFormCode returns the QForm code string
-	GetQFormCode() string
-	// GetImgShape returns the image shape [x, y, z, t]
-	GetImgShape() [4]int64
-	// GetAt returns the value at [x, y, z, t] as float64
-	GetAt(x, y, z, t int64) float64
 	// GetBinaryOrder returns the binary order of the NIFTI image
 	GetBinaryOrder() binary.ByteOrder
 	// GetUnitsOfMeasurements returns the spatial and temporal units of the NIFTI image
 	GetUnitsOfMeasurements() ([2]string, error)
 	// GetTimeSeries returns the time series of value at [x, y, z]
 	GetTimeSeries(x, y, z int64) ([]float64, error)
+	// GetAt returns the value at [x, y, z, t] as float64
+	GetAt(x, y, z, t int64) float64
 	// GetSlice returns the X-Y slice at [z, t]
 	GetSlice(z, t int64) ([][]float64, error)
 	// GetVolume returns the image data as 3-D matrix
@@ -44,14 +40,18 @@ type Reader interface {
 	GetAffine() matrix.DMat44
 	// QuaternToMatrix converts the quarternions parameters to matrix
 	QuaternToMatrix() matrix.DMat44
-	// GetNiiData returns the raw NIFTI header and image data
-	GetNiiData() *Nii
+	// GetSFormCode returns the SForm code string
+	GetSFormCode() string
+	// GetQFormCode returns the QForm code string
+	GetQFormCode() string
 	// GetQuaternB returns the QuaternB parameter
 	GetQuaternB() float64
 	// GetQuaternC returns the QuaternC parameter
 	GetQuaternC() float64
 	// GetQuaternD returns the QuaternD parameter
 	GetQuaternD() float64
+	// GetNiiData returns the raw NIFTI header and image data
+	GetNiiData() *Nii
 	// GetHeader returns the NIfTI header
 	GetHeader(prettyShow bool) interface{}
 	// GetVoxels returns the 1-D slices of voxel value as float64 type
@@ -204,8 +204,6 @@ func (r *NiiReader) GetDescrip() string {
 func (r *NiiReader) GetIntentName() string {
 	return r.data.getIntentName()
 }
-
-//----------------------------------------------------------------------------------------------------------------------
 
 // Parse returns the raw byte array into NIFTI-1 header and dataset structure
 func (r *NiiReader) Parse() error {

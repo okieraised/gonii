@@ -36,6 +36,7 @@ func NewNiiReader(filePath string, options ...func(*nifti.NiiReader) error) (nif
 	if err != nil {
 		return nil, err
 	}
+
 	// Check the content type to see if the file is gzipped. Do not depend on just the extensions of the file
 	bData, err = deflateFileContent(bData)
 	reader.SetReader(bytes.NewReader(bData))
