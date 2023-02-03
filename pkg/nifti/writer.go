@@ -102,9 +102,13 @@ func (w *NiiWriter) WriteToFile() error {
 func (w *NiiWriter) writePairNii() error {
 	var headerFilePath string
 
-	// Check if the user-specified filePath suffix is ending with '.nii'.
+	// Check if the user-specified filePath suffix is ending with '.nii' or '.gz'.
 	// If not, we append '.nii' to the end to signify the file is NIfTI format
-	if !strings.HasSuffix(w.filePath, NIFTI_EXT) {
+	if !strings.HasSuffix(w.filePath, NIFTI_EXT) && !strings.HasSuffix(w.filePath, NIFTI_COMPRESSED_EXT) {
+		// If user specifies the file with '.gz' extension then default to compression
+		if strings.HasSuffix(w.filePath, NIFTI_COMPRESSED_EXT) {
+			w.compression = true
+		}
 		w.filePath = w.filePath + NIFTI_EXT
 	}
 
@@ -121,11 +125,6 @@ func (w *NiiWriter) writePairNii() error {
 			headerFilePath = headerFilePath + NIFTI_COMPRESSED_EXT
 		}
 	}
-
-	//// Set the magic string to ni1
-	//w.header.Magic = NIFTI_1_MAGIC_PAIR
-	//// Set the VoxOffset to 0 since we write to separate header/img file
-	//w.header.VoxOffset = 0
 
 	// Write header structure as bytes
 	hdrBuf := &bytes.Buffer{}
@@ -222,9 +221,13 @@ func (w *NiiWriter) writeSingleNii() error {
 	dataset = append(dataset, offset...)
 	dataset = append(dataset, bData...)
 
-	// Check if the user-specified filePath suffix is ending with '.nii'.
+	// Check if the user-specified filePath suffix is ending with '.nii' or '.gz'.
 	// If not, we append '.nii' to the end to signify the file is NIfTI format
-	if !strings.HasSuffix(w.filePath, NIFTI_EXT) {
+	if !strings.HasSuffix(w.filePath, NIFTI_EXT) && !strings.HasSuffix(w.filePath, NIFTI_COMPRESSED_EXT) {
+		// If user specifies the file with '.gz' extension then default to compression
+		if strings.HasSuffix(w.filePath, NIFTI_COMPRESSED_EXT) {
+			w.compression = true
+		}
 		w.filePath = w.filePath + NIFTI_EXT
 	}
 
@@ -391,7 +394,7 @@ func (w *NiiWriter) convertImageToNii2Header() error {
 	}
 
 	header := new(Nii2Header)
-	header.SizeofHdr = NII1HeaderSize
+	header.SizeofHdr = NII2HeaderSize
 
 	header.Dim[0] = w.niiData.NDim
 	header.Dim[1], header.Dim[2], header.Dim[3] = w.niiData.Nx, w.niiData.Ny, w.niiData.Nz

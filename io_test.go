@@ -216,3 +216,34 @@ func TestNewNiiWriter_MakeSegmentation_Multi(t *testing.T) {
 	err = writer.WriteToFile()
 	assert.NoError(err)
 }
+
+func TestNewNiiWriter_Write_NIfTI2_Single(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "./test_data/int16.nii.gz"
+
+	rd, err := NewNiiReader(filePath, WithRetainHeader(false))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	voxels := rd.GetNiiData().GetVoxels()
+
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	filePath = "./test_data/int16_nii2.nii.gz"
+	writer, err := NewNiiWriter("./test_data/int16_nii2.nii.gz",
+		WithNIfTIData(rd.GetNiiData()),
+		WithCompression(true),
+		WithVersion(2),
+	)
+	err = writer.WriteToFile()
+	assert.NoError(err)
+
+	filePath = "./test_data/int16_nii2.nii.gz"
+	rd, err = NewNiiReader(filePath, WithRetainHeader(false))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+}
