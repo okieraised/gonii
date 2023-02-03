@@ -17,8 +17,9 @@ const (
 )
 
 const (
-	NII1HeaderSize = 348
-	NII2HeaderSize = 540
+	NII1HeaderSize       = 348
+	NII2HeaderSize       = 540
+	DefaultHeaderPadding = 4
 )
 
 var (

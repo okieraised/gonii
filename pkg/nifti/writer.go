@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/okieraised/gonii/internal/system"
 	"math"
 	"os"
@@ -16,6 +17,8 @@ type Writer interface {
 	WriteToFile() error
 	// GetNiiData returns the current NIfTI image data
 	GetNiiData() *Nii
+	// GetHeader returns the current NIfTI header
+	GetHeader() interface{}
 }
 
 // NiiWriter define the NIfTI writer structure.
@@ -26,12 +29,15 @@ type Writer interface {
 //     - `compression`      : Whether the NIfTI volume will be compressed. If writeHeaderFile is set to True, both the .hdr and .img files will be compressed
 //     - `niiData`          : Input NIfTI data to write to file
 //     - `header`           : Input NIfTI header to write to file. If nil, the default header will be constructed
+//     - `version`          : Specify the version (NIfTI-1 or NIfTI-2) to export
 type NiiWriter struct {
 	filePath        string      // Export file path to write NIfTI image
 	writeHeaderFile bool        // Whether to write NIfTI file pair (hdr + img file)
 	compression     bool        // Whether the NIfTI file will be compressed
 	niiData         *Nii        // Input NIfTI data to write to file
-	header          *Nii1Header // Input NIfTI header to write to file. If nil, the default header will be constructed
+	header          interface{} // Input NIfTI header to write to file. If nil, the default header will be constructed
+	version         int         //Specify the version (NIfTI-1 or NIfTI-2) to export
+	//header *Nii1Header // Input NIfTI header to write to file. If nil, the default header will be constructed
 }
 
 func (w *NiiWriter) SetFilePath(filePath string) {
@@ -54,63 +60,29 @@ func (w *NiiWriter) SetHeader(hdr *Nii1Header) {
 	w.header = hdr
 }
 
-// NewNiiWriter returns a new write for export
-func NewNiiWriter(filePath string, options ...func(*NiiWriter)) (*NiiWriter, error) {
-	writer := new(NiiWriter)
-
-	writer.filePath = filePath
-	writer.writeHeaderFile = false // Default to false. Write to a single file only
-	writer.compression = false     // Default to false. No compression
-
-	// Other options
-	for _, opt := range options {
-		opt(writer)
-	}
-	return writer, nil
-}
-
-// WithWriteHeaderFile sets the option to write NIfTI image to a header/image (.hdr/.img) file pair
-//
-// If true, output will be two files for the header and the image. Default is false.
-func WithWriteHeaderFile(writeHeaderFile bool) func(*NiiWriter) {
-	return func(w *NiiWriter) {
-		w.writeHeaderFile = writeHeaderFile
-	}
-}
-
-// WithCompression sets the option to write compressed NIfTI image to a single file (.nii.gz)
-//
-// If true, the whole file will be compressed. Default is false.
-func WithCompression(withCompression bool) func(writer *NiiWriter) {
-	return func(w *NiiWriter) {
-		w.compression = withCompression
-	}
-}
-
-// WithHeader sets the option to allow user to provide predefined NIfTI-1 header structure.
-//
-// If no header provided, the header will be converted from the NIfTI image structure
-func WithHeader(header *Nii1Header) func(*NiiWriter) {
-	return func(w *NiiWriter) {
-		w.header = header
-	}
-}
-
-// WithNIfTIData sets the option to allow user to provide predefined NIfTI-1 data structure.
-func WithNIfTIData(data *Nii) func(writer *NiiWriter) {
-	return func(w *NiiWriter) {
-		w.niiData = data
-	}
+func (w *NiiWriter) SetVersion(version int) {
+	w.version = version
 }
 
 // WriteToFile write the header and image to either a single NIfTI file or a pair of .hdr/.img file
 func (w *NiiWriter) WriteToFile() error {
-	// convert image structure to file
-	err := w.convertImageToHeader()
-	if err != nil {
-		return err
+	// Convert image to header
+	switch w.version {
+	case NIIVersion1:
+		err := w.convertImageToNii1Header()
+		if err != nil {
+			return err
+		}
+	case NIIVersion2:
+		err := w.convertImageToNii2Header()
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unknown NIfTI version %d", w.version)
 	}
 
+	// convert image structure to file
 	// If user decides to write to a separate hdr/img file pair
 	if w.writeHeaderFile {
 		err := w.writePairNii()
@@ -150,10 +122,10 @@ func (w *NiiWriter) writePairNii() error {
 		}
 	}
 
-	// Set the magic string to ni1
-	w.header.Magic = [4]uint8{110, 105, 49, 0}
-	// Set the VoxOffset to 0 since we write to separate header/img file
-	w.header.VoxOffset = 0
+	//// Set the magic string to ni1
+	//w.header.Magic = NIFTI_1_MAGIC_PAIR
+	//// Set the VoxOffset to 0 since we write to separate header/img file
+	//w.header.VoxOffset = 0
 
 	// Write header structure as bytes
 	hdrBuf := &bytes.Buffer{}
@@ -215,24 +187,24 @@ func (w *NiiWriter) writePairNii() error {
 
 // writeSingleNii writes the header and NIfTI image Nii to a single NIfTI file
 func (w *NiiWriter) writeSingleNii() error {
-	// Set the magic string to n+1
-	w.header.Magic = [4]uint8{110, 43, 49, 0}
+	var offset []byte
+	defaultPadding := 4
+	var offsetFromHeaderToVoxel int
 
 	// Need to get the number of bytes between the end of header structure and the start of the image data
-	offsetFromHeaderToVoxel := int(w.header.VoxOffset) - int(w.header.SizeofHdr)
-	var offset []byte
+	switch hdr := w.header.(type) {
+	case *Nii1Header:
+		offsetFromHeaderToVoxel = int(hdr.VoxOffset) - int(hdr.SizeofHdr)
+	case *Nii2Header:
+		offsetFromHeaderToVoxel = int(hdr.VoxOffset) - int(hdr.SizeofHdr)
+	default:
+		return fmt.Errorf("unknown header type")
+	}
 
-	// If the header size is equals to 348 (default), then we need to add 4 bytes or the offset we calculated to make it divisible by 6
-	if int(w.header.SizeofHdr) == NII1HeaderSize {
-		defaultPadding := 4
-		if offsetFromHeaderToVoxel > 0 {
-			offset = make([]byte, offsetFromHeaderToVoxel, offsetFromHeaderToVoxel)
-		} else {
-			// This is for a case where we read the image as .hdr/.img pair but then want to write to a single file.
-			// We have to update the VoxOffset value
-			w.header.VoxOffset = float32(int(w.header.SizeofHdr) + defaultPadding)
-			offset = make([]byte, defaultPadding, defaultPadding)
-		}
+	if offsetFromHeaderToVoxel > 0 {
+		offset = make([]byte, offsetFromHeaderToVoxel, offsetFromHeaderToVoxel)
+	} else {
+		offset = make([]byte, defaultPadding, defaultPadding)
 	}
 
 	// Make a buffer and write the header to it with default system endian
@@ -290,8 +262,8 @@ func (w *NiiWriter) writeSingleNii() error {
 	return nil
 }
 
-// convertImageToHeader returns the header from a NIfTI image structure
-func (w *NiiWriter) convertImageToHeader() error {
+// convertImageToNii1Header returns the header from a NIfTI image structure
+func (w *NiiWriter) convertImageToNii1Header() error {
 	if w.niiData == nil {
 		return errors.New("image data structure is nil")
 	}
@@ -335,13 +307,6 @@ func (w *NiiWriter) convertImageToHeader() error {
 			header.AuxFile[i] = w.niiData.AuxFile[i]
 		}
 		header.AuxFile[23] = 0x0
-	}
-
-	// Load NIFTI specific stuff into the header
-	if w.writeHeaderFile {
-		header.Magic = [4]byte{110, 43, 49, 0} // n+1
-	} else {
-		header.Magic = [4]byte{110, 105, 49, 0} // ni1
 	}
 
 	header.IntentCode = int16(w.niiData.IntentCode)
@@ -401,6 +366,138 @@ func (w *NiiWriter) convertImageToHeader() error {
 	header.SliceEnd = int16(w.niiData.SliceEnd)
 	header.SliceDuration = float32(w.niiData.SliceDuration)
 
+	// Load NIFTI specific stuff into the header
+	if w.writeHeaderFile {
+		header.Magic = [4]byte{110, 43, 49, 0} // n+1
+		header.VoxOffset = 0
+	} else {
+		header.Magic = [4]byte{110, 105, 49, 0} // ni1
+		// This is for a case where we read the image as .hdr/.img pair but then want to write to a single file.
+		// We have to update the VoxOffset value
+		if int(header.VoxOffset)-int(header.SizeofHdr) <= 0 {
+			header.VoxOffset = float32(header.SizeofHdr + DefaultHeaderPadding)
+		}
+	}
+
+	w.header = header
+
+	return nil
+}
+
+// convertImageToNii1Header returns the header from a NIfTI image structure
+func (w *NiiWriter) convertImageToNii2Header() error {
+	if w.niiData == nil {
+		return errors.New("image data structure is nil")
+	}
+
+	header := new(Nii2Header)
+	header.SizeofHdr = NII1HeaderSize
+
+	header.Dim[0] = w.niiData.NDim
+	header.Dim[1], header.Dim[2], header.Dim[3] = w.niiData.Nx, w.niiData.Ny, w.niiData.Nz
+	header.Dim[4], header.Dim[5], header.Dim[6] = w.niiData.Nt, w.niiData.Nu, w.niiData.Nv
+	header.Dim[7] = w.niiData.Nw
+
+	header.Pixdim[0] = 0.0
+	header.Pixdim[1], header.Pixdim[2], header.Pixdim[3] = math.Abs(w.niiData.Dx), math.Abs(w.niiData.Dy), math.Abs(w.niiData.Dz)
+	header.Pixdim[4], header.Pixdim[5], header.Pixdim[6] = math.Abs(w.niiData.Dt), math.Abs(w.niiData.Du), math.Abs(w.niiData.Dv)
+	header.Pixdim[7] = w.niiData.Dw
+
+	header.Datatype = int16(w.niiData.Datatype)
+	header.Bitpix = int16(8 * w.niiData.NByPer)
+
+	if w.niiData.CalMax > w.niiData.CalMin {
+		header.CalMin = w.niiData.CalMin
+		header.CalMax = w.niiData.CalMax
+	}
+
+	if w.niiData.SclSlope != 0.0 {
+		header.SclSlope = w.niiData.SclSlope
+		header.SclInter = w.niiData.SclInter
+	}
+
+	if w.niiData.Descrip[0] != 0x0 {
+		for i := 0; i < 79; i++ {
+			header.Descrip[i] = w.niiData.Descrip[i]
+		}
+		header.Descrip[79] = 0x0
+	}
+
+	if w.niiData.AuxFile[0] != 0x0 {
+		for i := 0; i < 23; i++ {
+			header.AuxFile[i] = w.niiData.AuxFile[i]
+		}
+		header.AuxFile[23] = 0x0
+	}
+
+	header.IntentCode = w.niiData.IntentCode
+	header.IntentP1 = w.niiData.IntentP1
+	header.IntentP2 = w.niiData.IntentP2
+	header.IntentP3 = w.niiData.IntentP3
+	if w.niiData.IntentName[0] != 0x0 {
+		for i := 0; i < 15; i++ {
+			header.IntentName[i] = w.niiData.IntentName[i]
+		}
+		header.IntentName[15] = 0x0
+	}
+
+	header.VoxOffset = int64(w.niiData.VoxOffset)
+	header.XyztUnits = int32(convertSpaceTimeToXYZT(w.niiData.XYZUnits, w.niiData.TimeUnits))
+	header.Toffset = w.niiData.TOffset
+
+	if w.niiData.QformCode > 0 {
+		header.QformCode = w.niiData.QformCode
+		header.QuaternB = w.niiData.QuaternB
+		header.QuaternC = w.niiData.QuaternC
+		header.QuaternD = w.niiData.QuaternD
+
+		header.QoffsetX = w.niiData.QoffsetX
+		header.QoffsetY = w.niiData.QoffsetY
+		header.QoffsetZ = w.niiData.QoffsetZ
+
+		if w.niiData.QFac >= 0 {
+			header.Pixdim[0] = 1.0
+		} else {
+			header.Pixdim[0] = -1.0
+		}
+	}
+
+	if w.niiData.SformCode > 0 {
+		header.SformCode = w.niiData.SformCode
+		header.SrowX[0] = w.niiData.StoXYZ.M[0][0]
+		header.SrowX[1] = w.niiData.StoXYZ.M[0][1]
+		header.SrowX[2] = w.niiData.StoXYZ.M[0][2]
+		header.SrowX[3] = w.niiData.StoXYZ.M[0][3]
+
+		header.SrowY[0] = w.niiData.StoXYZ.M[1][0]
+		header.SrowY[1] = w.niiData.StoXYZ.M[1][1]
+		header.SrowY[2] = w.niiData.StoXYZ.M[1][2]
+		header.SrowY[3] = w.niiData.StoXYZ.M[1][3]
+
+		header.SrowZ[0] = w.niiData.StoXYZ.M[2][0]
+		header.SrowZ[1] = w.niiData.StoXYZ.M[2][1]
+		header.SrowZ[2] = w.niiData.StoXYZ.M[2][2]
+		header.SrowZ[3] = w.niiData.StoXYZ.M[2][3]
+	}
+
+	header.DimInfo = convertFPSIntoDimInfo(w.niiData.FreqDim, w.niiData.PhaseDim, w.niiData.SliceDim)
+
+	header.SliceCode = w.niiData.SliceCode
+	header.SliceStart = w.niiData.SliceStart
+	header.SliceEnd = w.niiData.SliceEnd
+	header.SliceDuration = w.niiData.SliceDuration
+
+	// Load NIFTI specific stuff into the header
+	if w.writeHeaderFile {
+		header.Magic = NIFTI_2_MAGIC_PAIR // ni2
+		header.VoxOffset = 0
+	} else {
+		header.Magic = NIFTI_2_MAGIC_SINGLE // n+2
+		// This is for a case where we read the image as .hdr/.img pair but then want to write to a single file.
+		// We have to update the VoxOffset value
+		header.VoxOffset = int64(header.SizeofHdr + DefaultHeaderPadding)
+	}
+
 	w.header = header
 
 	return nil
@@ -409,4 +506,9 @@ func (w *NiiWriter) convertImageToHeader() error {
 // GetNiiData returns the current NIfTI image data
 func (w *NiiWriter) GetNiiData() *Nii {
 	return w.niiData
+}
+
+// GetHeader returns the current NIfTI header
+func (w *NiiWriter) GetHeader() interface{} {
+	return w.header
 }

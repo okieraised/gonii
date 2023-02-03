@@ -78,13 +78,14 @@ func WithHeaderFile(headerFile string) func(*nifti.NiiReader) error {
 // Define Writer methods
 //----------------------------------------------------------------------------------------------------------------------
 
-// NewNiiWriter returns a new NIfTI writer
+// NewNiiWriter returns a new NIfTI writer. If no version is specified, the writer will default to write to NIfTI version 1
 func NewNiiWriter(filePath string, options ...func(*nifti.NiiWriter)) (nifti.Writer, error) {
 	writer := new(nifti.NiiWriter)
 
 	writer.SetFilePath(filePath)
-	writer.SetWriteHeaderFile(false) // Default to false. Write to a single file only
-	writer.SetCompression(false)     // Default to false. No compression
+	writer.SetWriteHeaderFile(false)     // Default to false. Write to a single file only
+	writer.SetCompression(false)         // Default to false. No compression
+	writer.SetVersion(nifti.NIIVersion1) // Default to version 1
 
 	// Other options
 	for _, opt := range options {
@@ -124,6 +125,13 @@ func WithHeader(header *nifti.Nii1Header) func(*nifti.NiiWriter) {
 func WithNIfTIData(data *nifti.Nii) func(writer *nifti.NiiWriter) {
 	return func(w *nifti.NiiWriter) {
 		w.SetNiiData(data)
+	}
+}
+
+// WithVersion sets the option to specify the exported NIfTI version (NIfTI-1 or 2). Default is NIfTI-1
+func WithVersion(version int) func(writer *nifti.NiiWriter) {
+	return func(w *nifti.NiiWriter) {
+		w.SetVersion(version)
 	}
 }
 
