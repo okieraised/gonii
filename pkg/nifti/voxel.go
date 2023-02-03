@@ -1,5 +1,7 @@
 package nifti
 
+import "github.com/okieraised/gonii/internal/utils"
+
 // Voxels defines the structure of Voxel values
 type Voxels struct {
 	voxel                  []float64
@@ -40,4 +42,22 @@ func (v *Voxels) GetDataset() []float64 {
 func (v *Voxels) GetRawByteSize() int {
 	nByPer, _ := assignDatatypeSize(v.datatype)
 	return int(v.dimX*v.dimY*v.dimZ*v.dimT) * int(nByPer)
+}
+
+func (v *Voxels) CountNoneZero() (pos, neg, zero int) {
+	for _, vox := range v.voxel {
+		if vox > 0 {
+			pos++
+		} else if vox < 0 {
+			neg++
+		} else {
+			zero++
+		}
+	}
+	return pos, neg, zero
+}
+
+// Histogram returns the histogram of the voxels based on the input bins
+func (v *Voxels) Histogram(bins int) (utils.Histogram, error) {
+	return utils.Hist(bins, v.voxel)
 }
