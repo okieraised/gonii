@@ -371,10 +371,10 @@ func (w *NiiWriter) convertImageToNii1Header() error {
 
 	// Load NIFTI specific stuff into the header
 	if w.writeHeaderFile {
-		header.Magic = [4]byte{110, 43, 49, 0} // n+1
+		header.Magic = NIFTI_1_MAGIC_PAIR // ni1
 		header.VoxOffset = 0
 	} else {
-		header.Magic = [4]byte{110, 105, 49, 0} // ni1
+		header.Magic = NIFTI_1_MAGIC_SINGLE // n+1
 		// This is for a case where we read the image as .hdr/.img pair but then want to write to a single file.
 		// We have to update the VoxOffset value
 		if int(header.VoxOffset)-int(header.SizeofHdr) <= 0 {

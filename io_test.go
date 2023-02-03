@@ -232,7 +232,6 @@ func TestNewNiiWriter_Write_NIfTI2_Single(t *testing.T) {
 	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
 	assert.NoError(err)
 
-	filePath = "./test_data/int16_nii2.nii.gz"
 	writer, err := NewNiiWriter("./test_data/int16_nii2.nii.gz",
 		WithNIfTIData(rd.GetNiiData()),
 		WithCompression(true),
@@ -240,10 +239,26 @@ func TestNewNiiWriter_Write_NIfTI2_Single(t *testing.T) {
 	)
 	err = writer.WriteToFile()
 	assert.NoError(err)
+}
 
-	filePath = "./test_data/int16_nii2.nii.gz"
-	rd, err = NewNiiReader(filePath, WithRetainHeader(false))
+func TestNewNiiWriter_Write_NIfTI1_Pair(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "./test_data/int16.nii.gz"
+
+	rd, err := NewNiiReader(filePath, WithRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
+	assert.NoError(err)
+	voxels := rd.GetNiiData().GetVoxels()
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	writer, err := NewNiiWriter("./test_data/int16.img",
+		WithNIfTIData(rd.GetNiiData()),
+		WithCompression(false),
+		WithWriteHeaderFile(true),
+	)
+	err = writer.WriteToFile()
 	assert.NoError(err)
 }
