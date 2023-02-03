@@ -9,6 +9,13 @@ import (
 	"testing"
 )
 
+func Test_MagicString(t *testing.T) {
+	fmt.Println("nii1 .hdr/.img pair", []byte("ni1"))
+	fmt.Println("nii1 single", []byte("n+1"))
+	fmt.Println("nii2 .hdr/.img pair", []byte("ni2"))
+	fmt.Println("nii2 single", []byte("n+2"))
+}
+
 func TestNiiReader_Parse_SingleFile_Nii1_Int16(t *testing.T) {
 	assert := assert.New(t)
 

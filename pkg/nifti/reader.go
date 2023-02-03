@@ -129,7 +129,7 @@ func (r *NiiReader) parseNIfTI() error {
 		if err != nil {
 			return err
 		}
-		if n1Header.Magic != [4]byte{110, 43, 49, 0} && n1Header.Magic != [4]byte{110, 105, 49, 0} {
+		if n1Header.Magic != NIFTI_1_MAGIC_SINGLE && n1Header.Magic != NIFTI_1_MAGIC_PAIR {
 			return errors.New("invalid NIFTI-1 magic string")
 		}
 		dim0 = int64(n1Header.Dim[0])
@@ -148,7 +148,7 @@ func (r *NiiReader) parseNIfTI() error {
 		if err != nil {
 			return err
 		}
-		if n2Header.Magic != [8]byte{110, 43, 50, 0, 13, 10, 26, 10} {
+		if n2Header.Magic != NIFTI_2_MAGIC_SINGLE && n2Header.Magic != NIFTI_2_MAGIC_PAIR {
 			return errors.New("invalid NIFTI-2 magic string")
 		}
 		dim0 = n2Header.Dim[0]

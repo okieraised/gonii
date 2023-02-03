@@ -27,7 +27,7 @@ func main() {
 	fmt.Println(img.Volume[60000:70000])
 
 	// Transform the raw byte slices to a 1-D slice of voxel value in float64
-	voxels := rd.GetVoxels()
+	voxels := rd.GetNiiData().GetVoxels()
 	// to see the transformed value as a float64 slice
 	fmt.Println(voxels.GetDataset()[60000:70000])
 }

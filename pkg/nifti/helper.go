@@ -7,9 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/okieraised/gonii/internal/system"
-	"github.com/okieraised/gonii/internal/utils"
 	"math"
-	"net/http"
 )
 
 // IsValidDatatype checks whether the datatype is valid for NIFTI format
@@ -397,23 +395,9 @@ func validNIfTIFileExt(filePath string) {
 
 }
 
-// deflateFileContent deflates the gzipped binary to its original content
-func deflateFileContent(bData []byte) ([]byte, error) {
-	var err error
-	mimeType := http.DetectContentType(bData[:512])
-	if mimeType == "application/x-gzip" {
-		bData, err = utils.DeflateGzip(bData)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return bData, nil
-}
-
 func MakeNewNii1Header(inDim *[8]int16, inDatatype int32) *Nii1Header {
-
 	// Default Dim value
-	defaultDim := [8]int16{3, 1, 1, 1, 0, 0, 0, 0}
+	defaultDim := [8]int16{3, 1, 1, 1, 1, 1, 1, 1}
 
 	header := new(Nii1Header)
 	var dim [8]int16
@@ -467,7 +451,7 @@ func MakeNewNii1Header(inDim *[8]int16, inDatatype int32) *Nii1Header {
 
 func MakeNewNii2Header(inDim *[8]int64, inDatatype int32) *Nii2Header {
 	// Default Dim value
-	defaultDim := [8]int64{3, 1, 1, 1, 0, 0, 0, 0}
+	defaultDim := [8]int64{3, 1, 1, 1, 1, 1, 1, 1}
 
 	header := new(Nii2Header)
 	var dim [8]int64
@@ -513,7 +497,7 @@ func MakeNewNii2Header(inDim *[8]int64, inDatatype int32) *Nii2Header {
 
 	nByper, _ := assignDatatypeSize(datatype)
 	header.Bitpix = 8 * nByper
-	header.Magic = [8]byte{110, 105, 50, 0, 13, 10, 26, 10}
+	header.Magic = NIFTI_2_MAGIC_SINGLE
 
 	return header
 }

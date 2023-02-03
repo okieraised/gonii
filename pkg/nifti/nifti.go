@@ -197,7 +197,8 @@ func (n *Nii) GetOrientation() [3]string {
 	return res
 }
 
-func (n *Nii) GetVoxel() *Voxels {
+// GetVoxels returns the 1-D slice of voxel values of type float64
+func (n *Nii) GetVoxels() *Voxels {
 	vox := NewVoxels(n.Nx, n.Ny, n.Nz, n.Nt, n.Datatype)
 	for x := int64(0); x < n.Nx; x++ {
 		for y := int64(0); y < n.Ny; y++ {

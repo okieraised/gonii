@@ -21,6 +21,13 @@ const (
 	NII2HeaderSize = 540
 )
 
+var (
+	NIFTI_1_MAGIC_SINGLE = [4]byte{110, 43, 49, 0}                  // n+1 or single file
+	NIFTI_1_MAGIC_PAIR   = [4]byte{110, 105, 49, 0}                 // ni1 or .hdr/.img pair
+	NIFTI_2_MAGIC_SINGLE = [8]byte{110, 43, 50, 0, 13, 10, 26, 10}  // n+2 or single file
+	NIFTI_2_MAGIC_PAIR   = [8]byte{110, 105, 50, 0, 13, 10, 26, 10} // ni2 or .hdr/.img pair
+)
+
 //// Possible NIFTI image extension
 //const (
 //	NIFTI_FTYPE_NIFTI1_1     = ".nii"
