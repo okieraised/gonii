@@ -18,8 +18,8 @@ func IsValidDatatype(datatype int32) bool {
 	return false
 }
 
-// swapNIFTI1Header swaps all NIFTI fields
-func swapNIFTI1Header(header *Nii1Header) (*Nii1Header, error) {
+// SwapNIFTI1Header swaps all NIFTI fields
+func SwapNIFTI1Header(header *Nii1Header) (*Nii1Header, error) {
 	newHeader := new(Nii1Header)
 	var err error
 
@@ -620,4 +620,76 @@ func uint32ToFloat64(v uint32, datatype int32) float64 {
 func prettyPrint(i interface{}) string {
 	s, _ := json.MarshalIndent(i, "", "\t")
 	return string(s)
+}
+
+// ConvertVoxelToBytes converts the voxel in float64 back to bytes slice based on datatype and NByPer
+func ConvertVoxelToBytes(voxel, slope, intercept float64, datatype int32, binaryOrder binary.ByteOrder, nByPer int32) ([]byte, error) {
+	// Check if we need to rescale
+	if slope != 0 && datatype != DT_RGB24 {
+		voxel = (voxel - intercept) / slope
+	}
+
+	switch nByPer {
+	case 0:
+		return nil, errors.New("nByPer is 0")
+	case 1: // 1 byte per voxel includes Uint8 and Int8
+		var buf bytes.Buffer
+		switch datatype {
+		case DT_UINT8:
+			err := binary.Write(&buf, binaryOrder, uint8(voxel))
+			if err != nil {
+				return nil, err
+			}
+		case DT_INT8:
+			err := binary.Write(&buf, binaryOrder, int8(voxel))
+			if err != nil {
+				return nil, err
+			}
+		}
+		return buf.Bytes(), nil
+	case 2: // This fits Uint16
+		v := uint16(voxel)
+		b := make([]byte, 2)
+		switch binaryOrder {
+		case binary.LittleEndian:
+			binary.LittleEndian.PutUint16(b, v)
+		case binary.BigEndian:
+			binary.BigEndian.PutUint16(b, v)
+		}
+		return b, nil
+	case 3: // This fits Uint32 -> RGB24
+		v := math.Float32bits(float32(voxel))
+		b := make([]byte, 4)
+		switch binaryOrder {
+		case binary.LittleEndian:
+			binary.LittleEndian.PutUint32(b, v)
+		case binary.BigEndian:
+			binary.BigEndian.PutUint32(b, v)
+		}
+		return b[:3], nil
+	case 4: // This fits Uint32
+		v := uint32(voxel)
+		b := make([]byte, 4)
+		switch binaryOrder {
+		case binary.LittleEndian:
+			binary.LittleEndian.PutUint32(b, v)
+		case binary.BigEndian:
+			binary.BigEndian.PutUint32(b, v)
+		}
+		return b, nil
+	case 8:
+		v := uint64(voxel)
+		b := make([]byte, 8)
+		switch binaryOrder {
+		case binary.LittleEndian:
+			binary.LittleEndian.PutUint64(b, v)
+		case binary.BigEndian:
+			binary.BigEndian.PutUint64(b, v)
+		}
+		return b, nil
+	case 16: // Unsupported
+	case 32: // Unsupported
+	default:
+	}
+	return nil, errors.New("unsupported datatype")
 }

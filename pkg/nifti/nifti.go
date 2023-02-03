@@ -1,7 +1,6 @@
 package nifti
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -225,10 +224,9 @@ func (n *Nii) GetAt(x, y, z, t int64) float64 {
 
 	var value float64
 	switch n.NByPer {
-	case 0, 1:
-		if len(dataPoint) > 0 {
-			value = float64(dataPoint[0])
-		}
+	case 0:
+	case 1:
+		value = float64(dataPoint[0])
 	case 2: // This fits Uint16
 		var v uint16
 		switch n.ByteOrder {
@@ -558,90 +556,6 @@ func (n *Nii) SetTimeUnits(timeUnit int32) {
 	n.TimeUnits = timeUnit
 }
 
-// SetAt sets the new value in bytes at (x, y, z, t) location
-func (n *Nii) SetAt(newVal float64, x, y, z, t int64) error {
-
-	tIndex := t * n.Nx * n.Ny * n.Nz
-	zIndex := n.Nx * n.Ny * z
-	yIndex := n.Nx * y
-	xIndex := x
-	index := tIndex + zIndex + yIndex + xIndex
-	nByPer := int64(n.NByPer)
-
-	if index*nByPer > int64(len(n.Volume)) || (index+1)*nByPer > int64(len(n.Volume)) {
-		return fmt.Errorf("index out of range. Max volume size is %d", len(n.Volume))
-	}
-
-	dataPoint := n.Volume[index*nByPer : (index+1)*nByPer]
-
-	switch nByPer {
-	case 0:
-		return nil
-	case 1:
-		if len(dataPoint) > 0 {
-			count := 0
-			var buf bytes.Buffer
-			err := binary.Write(&buf, n.ByteOrder, newVal)
-			if err != nil {
-				return err
-			}
-			for _, b := range buf.Bytes() {
-				if b != 0x00 {
-					count++
-				}
-			}
-			if count == len(dataPoint) {
-				copy(n.Volume[index*nByPer:(index+1)*nByPer], buf.Bytes())
-			}
-		}
-	case 2: // This fits Uint16
-		v := uint16(newVal)
-		b := make([]byte, 2)
-
-		switch n.ByteOrder {
-		case binary.LittleEndian:
-			binary.LittleEndian.PutUint16(b, v)
-		case binary.BigEndian:
-			binary.BigEndian.PutUint16(b, v)
-		}
-		copy(n.Volume[index*nByPer:(index+1)*nByPer], b)
-	case 3:
-		v := math.Float32bits(float32(newVal))
-		b := make([]byte, 4)
-		switch n.ByteOrder {
-		case binary.LittleEndian:
-			binary.LittleEndian.PutUint32(b, v)
-		case binary.BigEndian:
-			binary.BigEndian.PutUint32(b, v)
-		}
-		copy(n.Volume[index*nByPer:(index+1)*nByPer], b[:3])
-	case 4: // This fits Uint32
-		v := uint32(newVal)
-		b := make([]byte, 4)
-		switch n.ByteOrder {
-		case binary.LittleEndian:
-			binary.LittleEndian.PutUint32(b, v)
-		case binary.BigEndian:
-			binary.BigEndian.PutUint32(b, v)
-		}
-		copy(n.Volume[index*nByPer:(index+1)*nByPer], b)
-	case 8:
-		v := uint64(newVal)
-		b := make([]byte, 8)
-		switch n.ByteOrder {
-		case binary.LittleEndian:
-			binary.LittleEndian.PutUint64(b, v)
-		case binary.BigEndian:
-			binary.BigEndian.PutUint64(b, v)
-		}
-		copy(n.Volume[index*nByPer:(index+1)*nByPer], b)
-	case 16: // Unsupported
-	case 32: // Unsupported
-	default:
-	}
-	return nil
-}
-
 // SetVolume sets the new volume
 func (n *Nii) SetVolume(vol []byte) error {
 	var bDataLength int64
@@ -682,74 +596,38 @@ func (n *Nii) SetVolume(vol []byte) error {
 	return nil
 }
 
+// SetAt sets the new value in bytes at (x, y, z, t) location
+func (n *Nii) SetAt(newVal float64, x, y, z, t int64) error {
+
+	tIndex := t * n.Nx * n.Ny * n.Nz
+	zIndex := n.Nx * n.Ny * z
+	yIndex := n.Nx * y
+	xIndex := x
+	index := tIndex + zIndex + yIndex + xIndex
+	nByPer := int64(n.NByPer)
+
+	if index*nByPer > int64(len(n.Volume)) || (index+1)*nByPer > int64(len(n.Volume)) {
+		return fmt.Errorf("index out of range. Max volume size is %d", len(n.Volume))
+	}
+	bVal, err := ConvertVoxelToBytes(newVal, n.SclSlope, n.SclInter, n.Datatype, n.ByteOrder, n.NByPer)
+	if err != nil {
+		return err
+	}
+	copy(n.Volume[index*nByPer:(index+1)*nByPer], bVal)
+	return nil
+}
+
 // SetVoxelToRawVolume converts the 1-D slice of float64 back to byte array
 func (n *Nii) SetVoxelToRawVolume(vox *Voxels) error {
 	result := make([]byte, vox.GetRawByteSize(), vox.GetRawByteSize())
 	nByPer := n.NByPer
 
 	for index, voxel := range vox.voxel {
-		switch nByPer {
-		case 0:
-			continue
-		case 1: // 1 byte per voxel includes Uint8 and Int8
-			var buf bytes.Buffer
-			switch n.Datatype {
-			case DT_UINT8:
-				err := binary.Write(&buf, n.ByteOrder, uint8(voxel))
-				if err != nil {
-					return err
-				}
-			case DT_INT8:
-				err := binary.Write(&buf, n.ByteOrder, int8(voxel))
-				if err != nil {
-					return err
-				}
-			}
-			copy(result[index*int(nByPer):(index+1)*int(nByPer)], buf.Bytes())
-		case 2: // This fits Uint16
-			v := uint16(voxel)
-			b := make([]byte, 2)
-			switch n.ByteOrder {
-			case binary.LittleEndian:
-				binary.LittleEndian.PutUint16(b, v)
-			case binary.BigEndian:
-				binary.BigEndian.PutUint16(b, v)
-			}
-			copy(result[index*int(nByPer):(index+1)*int(nByPer)], b)
-		case 3: // This fits Uint32 -> RGB24
-			v := math.Float32bits(float32(voxel))
-			b := make([]byte, 4)
-			switch n.ByteOrder {
-			case binary.LittleEndian:
-				binary.LittleEndian.PutUint32(b, v)
-			case binary.BigEndian:
-				binary.BigEndian.PutUint32(b, v)
-			}
-			copy(result[index*int(nByPer):(index+1)*int(nByPer)], b[:3])
-		case 4: // This fits Uint32
-			v := uint32(voxel)
-			b := make([]byte, 4)
-			switch n.ByteOrder {
-			case binary.LittleEndian:
-				binary.LittleEndian.PutUint32(b, v)
-			case binary.BigEndian:
-				binary.BigEndian.PutUint32(b, v)
-			}
-			copy(result[index*int(nByPer):(index+1)*int(nByPer)], b)
-		case 8:
-			v := uint64(voxel)
-			b := make([]byte, 8)
-			switch n.ByteOrder {
-			case binary.LittleEndian:
-				binary.LittleEndian.PutUint64(b, v)
-			case binary.BigEndian:
-				binary.BigEndian.PutUint64(b, v)
-			}
-			copy(result[index*int(nByPer):(index+1)*int(nByPer)], b)
-		case 16: // Unsupported
-		case 32: // Unsupported
-		default:
+		bVal, err := ConvertVoxelToBytes(voxel, n.SclSlope, n.SclInter, n.Datatype, n.ByteOrder, nByPer)
+		if err != nil {
+			return err
 		}
+		copy(result[index*int(nByPer):(index+1)*int(nByPer)], bVal)
 	}
 	n.Volume = result
 	return nil

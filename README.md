@@ -48,4 +48,4 @@ func main() {
 
 ## TODO
 - [ ] Improve NIfTI reader for large file size
-- [ ] Improve NIfTI writer to export as NIfTI-2 format
+- [ ] Add support for NIfTI writer to export data as NIfTI-2 format

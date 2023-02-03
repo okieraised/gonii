@@ -9,13 +9,6 @@ import (
 	"testing"
 )
 
-func Test_MagicString(t *testing.T) {
-	fmt.Println("nii1 .hdr/.img pair", []byte("ni1"))
-	fmt.Println("nii1 single", []byte("n+1"))
-	fmt.Println("nii2 .hdr/.img pair", []byte("ni2"))
-	fmt.Println("nii2 single", []byte("n+2"))
-}
-
 func TestNiiReader_Parse_SingleFile_Nii1_Int16(t *testing.T) {
 	assert := assert.New(t)
 
@@ -128,4 +121,98 @@ func TestNewNiiReader_Parse_HeaderImagePair(t *testing.T) {
 	fmt.Println("quatern_b", rd.GetNiiData().GetQuaternB())
 	fmt.Println("quatern_c", rd.GetNiiData().GetQuaternC())
 	fmt.Println("quatern_d", rd.GetNiiData().GetQuaternD())
+}
+
+func Test_MagicString(t *testing.T) {
+	fmt.Println("nii1 .hdr/.img pair", []byte("ni1"))
+	fmt.Println("nii1 single", []byte("n+1"))
+	fmt.Println("nii2 .hdr/.img pair", []byte("ni2"))
+	fmt.Println("nii2 single", []byte("n+2"))
+}
+
+func TestNewNiiWriter_Voxels(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "./test_data/int16.nii.gz"
+
+	rd, err := NewNiiReader(filePath, WithRetainHeader(false))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	voxels := rd.GetNiiData().GetVoxels()
+
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	writer, err := NewNiiWriter("./test_data/int16_voxel_output.nii.gz",
+		WithNIfTIData(rd.GetNiiData()),
+		WithCompression(true),
+	)
+	err = writer.WriteToFile()
+	assert.NoError(err)
+}
+
+func TestNewNiiWriter_MakeSegmentation_Single(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "./test_data/int16.nii.gz"
+
+	rd, err := NewNiiReader(filePath, WithRetainHeader(false))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	voxels := rd.GetNiiData().GetVoxels()
+
+	for index, voxel := range voxels.GetDataset() {
+		if voxel > 0 {
+			voxels.GetDataset()[index] = 1
+		} else {
+			voxels.GetDataset()[index] = 0
+		}
+	}
+
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	writer, err := NewNiiWriter("./test_data/int16_seg_single.nii.gz",
+		WithNIfTIData(rd.GetNiiData()),
+		WithCompression(true),
+	)
+	err = writer.WriteToFile()
+	assert.NoError(err)
+}
+
+func TestNewNiiWriter_MakeSegmentation_Multi(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "./test_data/int16.nii.gz"
+
+	rd, err := NewNiiReader(filePath, WithRetainHeader(false))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	voxels := rd.GetNiiData().GetVoxels()
+
+	for index, voxel := range voxels.GetDataset() {
+		if voxel > 0 && voxel <= 128 {
+			voxels.GetDataset()[index] = 1
+		} else if voxel > 128 {
+			voxels.GetDataset()[index] = 2
+		} else {
+			voxels.GetDataset()[index] = 0
+		}
+	}
+
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	writer, err := NewNiiWriter("./test_data/int16_seg_multi.nii.gz",
+		WithNIfTIData(rd.GetNiiData()),
+		WithCompression(true),
+	)
+	err = writer.WriteToFile()
+	assert.NoError(err)
 }
