@@ -8,6 +8,10 @@ import (
 	"github.com/okieraised/gonii/pkg/nifti"
 )
 
+const (
+	DefaultAnnotationOutFile = "./segmentation.nii.gz"
+)
+
 type Segmentation struct {
 	nii1Hdr     *nifti.Nii1Header
 	nii2Hdr     *nifti.Nii2Header
@@ -63,7 +67,7 @@ func AnnotationJsonToNii(annotations []SegmentCoordinate, opts ...SegmentationOp
 	seg := &Segmentation{
 		Annotations: annotations,
 		compression: true,
-		outFile:     "./segmentation.nii.gz",
+		outFile:     DefaultAnnotationOutFile,
 	}
 	for _, opt := range opts {
 		opt(seg)
@@ -154,7 +158,12 @@ func (s *Segmentation) convertSegmentationToNii1() error {
 		return err
 	}
 
-	wr, err := NewNiiWriter(s.outFile, WithCompression(s.compression), WithVersion(1), WithNii1Header(s.nii1Hdr), WithNIfTIData(&nifti.Nii{Volume: rawImg}))
+	wr, err := NewNiiWriter(s.outFile,
+		WithCompression(s.compression),
+		WithVersion(nifti.NIIVersion1),
+		WithNii1Header(s.nii1Hdr),
+		WithNIfTIData(&nifti.Nii{Volume: rawImg}),
+	)
 	if err != nil {
 		return err
 	}
@@ -162,26 +171,6 @@ func (s *Segmentation) convertSegmentationToNii1() error {
 	if err != nil {
 		return err
 	}
-	//bHeader := hdrBuf.Bytes()
-	//var offset []byte
-	//
-	//offsetFromHeaderToVoxel := int(s.nii1Hdr.VoxOffset) - int(s.nii1Hdr.SizeofHdr)
-	//if offsetFromHeaderToVoxel > 0 {
-	//	offset = make([]byte, offsetFromHeaderToVoxel, offsetFromHeaderToVoxel)
-	//} else {
-	//	offset = make([]byte, nifti.DefaultHeaderPadding, nifti.DefaultHeaderPadding)
-	//}
-	//
-	//// Assemble the header and image data
-	//var imgContent []byte
-	//imgContent = append(imgContent, bHeader...)
-	//imgContent = append(imgContent, offset...)
-	//imgContent = append(imgContent, rawImg...)
-	//
-	//err = nifti.WriteToFile(s.outFile, s.compression, imgContent)
-	//if err != nil {
-	//	return err
-	//}
 	return nil
 }
 
@@ -200,6 +189,5 @@ func (s *Segmentation) convertSegmentationToNii2() error {
 	if s.nii2Hdr.Bitpix <= 0 {
 		return errors.New("bitpix value must be larger than 0")
 	}
-
 	return nil
 }
