@@ -37,7 +37,6 @@ type NiiWriter struct {
 	niiData         *Nii        // Input NIfTI data to write to file
 	header          interface{} // Input NIfTI header to write to file. If nil, the default header will be constructed
 	version         int         //Specify the version (NIfTI-1 or NIfTI-2) to export
-	//header *Nii1Header // Input NIfTI header to write to file. If nil, the default header will be constructed
 }
 
 func (w *NiiWriter) SetFilePath(filePath string) {
@@ -248,6 +247,10 @@ func (w *NiiWriter) writeSingleNii() error {
 
 // convertImageToNii1Header returns the header from a NIfTI image structure
 func (w *NiiWriter) convertImageToNii1Header() error {
+	if w.header != nil {
+		return nil
+	}
+
 	if w.niiData == nil {
 		return errors.New("image data structure is nil")
 	}
@@ -370,6 +373,10 @@ func (w *NiiWriter) convertImageToNii1Header() error {
 
 // convertImageToNii1Header returns the header from a NIfTI image structure
 func (w *NiiWriter) convertImageToNii2Header() error {
+	if w.header != nil {
+		return nil
+	}
+
 	if w.niiData == nil {
 		return errors.New("image data structure is nil")
 	}
