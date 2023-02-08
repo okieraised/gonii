@@ -254,7 +254,7 @@ func (r *NiiReader) parseData(header interface{}) error {
 
 		bitpix = n1Header.Bitpix
 
-		NByPerVoxel, SwapSize := assignDatatypeSize(datatype)
+		NByPerVoxel, SwapSize := AssignDatatypeSize(datatype)
 		r.data.NByPer = int32(NByPerVoxel)
 		r.data.SwapSize = int32(SwapSize)
 
@@ -328,7 +328,7 @@ func (r *NiiReader) parseData(header interface{}) error {
 		// SRowX, SRowY, SRowZ
 		sRowX, sRowY, sRowZ = n2Header.SrowX, n2Header.SrowY, n2Header.SrowZ
 
-		NByPerVoxel, SwapSize := assignDatatypeSize(datatype)
+		NByPerVoxel, SwapSize := AssignDatatypeSize(datatype)
 		r.data.NByPer = int32(NByPerVoxel)
 		r.data.SwapSize = int32(SwapSize)
 

@@ -56,7 +56,7 @@ func (w *NiiWriter) SetNiiData(nii *Nii) {
 	w.niiData = nii
 }
 
-func (w *NiiWriter) SetHeader(hdr *Nii1Header) {
+func (w *NiiWriter) SetHeader(hdr interface{}) {
 	w.header = hdr
 }
 
@@ -187,7 +187,6 @@ func (w *NiiWriter) writePairNii() error {
 // writeSingleNii writes the header and NIfTI image Nii to a single NIfTI file
 func (w *NiiWriter) writeSingleNii() error {
 	var offset []byte
-	defaultPadding := 4
 	var offsetFromHeaderToVoxel int
 
 	// Need to get the number of bytes between the end of header structure and the start of the image data
@@ -203,7 +202,7 @@ func (w *NiiWriter) writeSingleNii() error {
 	if offsetFromHeaderToVoxel > 0 {
 		offset = make([]byte, offsetFromHeaderToVoxel, offsetFromHeaderToVoxel)
 	} else {
-		offset = make([]byte, defaultPadding, defaultPadding)
+		offset = make([]byte, DefaultHeaderPadding, DefaultHeaderPadding)
 	}
 
 	// Make a buffer and write the header to it with default system endian
@@ -240,27 +239,9 @@ func (w *NiiWriter) writeSingleNii() error {
 	}
 
 	// Create a file object from the specified filePath
-	file, err := os.Create(w.filePath)
+	err = WriteToFile(w.filePath, w.compression, dataset)
 	if err != nil {
 		return err
-	}
-	defer file.Close()
-
-	if w.compression { // If the compression is set to true, then write a compressed file
-		gzipWriter := gzip.NewWriter(file)
-		_, err = gzipWriter.Write(dataset)
-		if err != nil {
-			return err
-		}
-		err = gzipWriter.Close()
-		if err != nil {
-			return err
-		}
-	} else { // Otherwise, just write normal file
-		_, err = file.Write(dataset)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }

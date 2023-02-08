@@ -40,7 +40,7 @@ func (v *Voxels) GetDataset() []float64 {
 }
 
 func (v *Voxels) GetRawByteSize() int {
-	nByPer, _ := assignDatatypeSize(v.datatype)
+	nByPer, _ := AssignDatatypeSize(v.datatype)
 	return int(v.dimX*v.dimY*v.dimZ*v.dimT) * int(nByPer)
 }
 

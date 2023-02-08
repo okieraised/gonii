@@ -7,14 +7,14 @@ import (
 
 // Histogram holds a count of values partitioned over buckets.
 type Histogram struct {
+	// Buckets over which values are partitioned.
+	Buckets []Bucket
 	// Min is the size of the smallest bucket.
 	Min int
 	// Max is the size of the biggest bucket.
 	Max int
 	// Count is the total size of all buckets.
 	Count int
-	// Buckets over which values are partitioned.
-	Buckets []Bucket
 }
 
 // Bucket counts a partition of values.

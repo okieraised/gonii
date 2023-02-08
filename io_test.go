@@ -264,3 +264,42 @@ func TestNewNiiWriter_Write_NIfTI1_Pair(t *testing.T) {
 	err = writer.WriteToFile()
 	assert.NoError(err)
 }
+
+func TestCommon(t *testing.T) {
+	x := make([]byte, 10, 10)
+	fmt.Println(x)
+
+	y := make([]byte, 10)
+	fmt.Println(y)
+}
+
+func TestNewNiiWriter_MakeSegmentation_New(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "/home/tripg/workspace/gonii_test/int16.nii.gz"
+
+	rd, err := NewNiiReader(filePath, WithRetainHeader(false))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	voxels := rd.GetNiiData().GetVoxels()
+
+	for index, voxel := range voxels.GetDataset() {
+		if voxel > 200 {
+			voxels.GetDataset()[index] = 1
+		} else {
+			voxels.GetDataset()[index] = 0
+		}
+	}
+
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	writer, err := NewNiiWriter("/home/tripg/workspace/gonii_test/int16_seg_single.nii.gz",
+		WithNIfTIData(rd.GetNiiData()),
+		WithCompression(true),
+	)
+	err = writer.WriteToFile()
+	assert.NoError(err)
+}

@@ -112,10 +112,19 @@ func WithCompression(withCompression bool) func(writer *nifti.NiiWriter) {
 	}
 }
 
-// WithHeader sets the option to allow user to provide predefined NIfTI-1 header structure.
+// WithNii1Header sets the option to allow user to provide predefined NIfTI-1 header structure.
 //
 // If no header provided, the header will be converted from the NIfTI image structure
-func WithHeader(header *nifti.Nii1Header) func(*nifti.NiiWriter) {
+func WithNii1Header(header *nifti.Nii1Header) func(*nifti.NiiWriter) {
+	return func(w *nifti.NiiWriter) {
+		w.SetHeader(header)
+	}
+}
+
+// WithNii2Header sets the option to allow user to provide predefined NIfTI-2 header structure.
+//
+// If no header provided, the header will be converted from the NIfTI image structure
+func WithNii2Header(header *nifti.Nii2Header) func(*nifti.NiiWriter) {
 	return func(w *nifti.NiiWriter) {
 		w.SetHeader(header)
 	}
