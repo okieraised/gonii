@@ -29,7 +29,7 @@ func TestAnnotationJsonToNii(t *testing.T) {
 
 	//fmt.Println(annotations)
 
-	err = AnnotationJsonToNii(annotations, WithNii1Hdr(rd.GetHeader(false).(*nifti.Nii1Header)))
+	err = AnnotationJsonToNii(annotations, WithNii1Hdr(rd.GetHeader(false).(*nifti.Nii1Header)), WithSegCompression(true), WithOutFile("/home/tripg/workspace/gonii_test/int16_seg_2.nii.gz"))
 	assert.NoError(err)
 
 }
