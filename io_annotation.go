@@ -286,7 +286,7 @@ func (s *Segmentation) convertSegmentationToNii2() error {
 
 	// Export segmentation to file
 	hdrBuf := &bytes.Buffer{}
-	err := binary.Write(hdrBuf, system.NativeEndian, s.nii1Hdr)
+	err := binary.Write(hdrBuf, system.NativeEndian, s.nii2Hdr)
 	if err != nil {
 		return err
 	}
