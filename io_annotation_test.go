@@ -14,7 +14,7 @@ func TestAnnotationJsonToNii(t *testing.T) {
 	assert := assert.New(t)
 
 	filePath := "/home/tripg/workspace/gonii_test/int16.nii.gz"
-	rd, err := NewNiiReader(filePath, WithRetainHeader(true))
+	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(true))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -27,9 +27,10 @@ func TestAnnotationJsonToNii(t *testing.T) {
 	err = json.Unmarshal(bJson, &annotations)
 	assert.NoError(err)
 
-	//fmt.Println(annotations)
-
-	err = AnnotationJsonToNii(annotations, WithNii1Hdr(rd.GetHeader(false).(*nifti.Nii1Header)), WithSegCompression(true), WithOutFile("/home/tripg/workspace/gonii_test/int16_seg_2.nii.gz"))
+	err = AnnotationJsonToNii(annotations,
+		WithNii1Hdr(rd.GetHeader(false).(*nifti.Nii1Header)),
+		WithSegCompression(true),
+		WithOutFile("/home/tripg/workspace/gonii_test/int16_seg_9223.nii.gz"))
 	assert.NoError(err)
 
 }
@@ -39,19 +40,14 @@ func TestNewNiiWriter_MakeSegmentation_ToJson(t *testing.T) {
 
 	filePath := "/home/tripg/workspace/gonii_test/int16_seg_single.nii.gz"
 
-	rd, err := NewNiiReader(filePath, WithRetainHeader(false))
+	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
 
 	voxels := rd.GetNiiData().GetVoxels()
-	res := []SegmentCoordinate{}
+	var res []SegmentCoordinate
 
-	//for _, voxel := range voxels.GetDataset() {
-	//	if voxel > 0 {
-	//		fmt.Println(voxel)
-	//	}
-	//}
 	fmt.Println(voxels.CountNoneZero())
 
 	fmt.Println(rd.GetNiiData().Nx, rd.GetNiiData().Ny, rd.GetNiiData().Nz, rd.GetNiiData().Nt)
@@ -76,27 +72,29 @@ func TestNewNiiWriter_MakeSegmentation_ToJson(t *testing.T) {
 		}
 	}
 
-	//fmt.Println(res)
-
 	file, _ := json.MarshalIndent(res, "", " ")
 
 	_ = ioutil.WriteFile("/home/tripg/workspace/gonii_test/coord.json", file, 0777)
+}
 
-	//for index, voxel := range voxels.GetDataset() {
-	//	if voxel > 200 {
-	//		voxels.GetDataset()[index] = 1
-	//	} else {
-	//		voxels.GetDataset()[index] = 0
-	//	}
-	//}
-	//
-	//err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
-	//assert.NoError(err)
-	//
-	//writer, err := NewNiiWriter("/home/tripg/workspace/gonii_test/int16_seg_single.nii.gz",
-	//	WithNIfTIData(rd.GetNiiData()),
-	//	WithCompression(true),
-	//)
-	//err = writer.WriteToFile()
-	//assert.NoError(err)
+func TestNewNiiWriter_MultipleSegmentations(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "/home/tripg/workspace/gonii_test/corie_seg.nii.gz"
+
+	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	voxels := rd.GetNiiData().GetVoxels()
+
+	voxelValMapper := map[float64]bool{}
+	for _, voxel := range voxels.GetDataset() {
+		_, ok := voxelValMapper[voxel]
+		if !ok {
+			voxelValMapper[voxel] = true
+		}
+	}
+	fmt.Println(voxelValMapper)
 }

@@ -91,6 +91,34 @@ func AnnotationJsonToNii(annotations []SegmentCoordinate, opts ...SegmentationOp
 	return nil
 }
 
+func AnnotationNiiToJson(annotations []SegmentCoordinate, opts ...SegmentationOption) error {
+	seg := &Segmentation{
+		Annotations: annotations,
+		compression: true,
+		outFile:     DefaultAnnotationOutFile,
+	}
+	for _, opt := range opts {
+		opt(seg)
+	}
+
+	if seg.nii1Hdr == nil && seg.nii2Hdr == nil {
+		return errors.New("at least one header structure must be specified")
+	}
+
+	if (seg.nii1Hdr != nil && seg.nii2Hdr != nil) || (seg.nii1Hdr == nil && seg.nii2Hdr != nil) {
+		err := seg.convertSegmentationToNii2()
+		if err != nil {
+			return err
+		}
+	} else {
+		err := seg.convertSegmentationToNii1()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // convertSegmentationToNii1 converts the voxel and the header to a NIfTI-1 file
 func (s *Segmentation) convertSegmentationToNii1() error {
 
