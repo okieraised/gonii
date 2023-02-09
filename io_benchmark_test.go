@@ -39,6 +39,7 @@ func BenchmarkNewNiiReader_90MB(b *testing.B) {
 }
 
 func BenchmarkNewNiiReader_2_2MB(b *testing.B) {
+	b.N = 100
 	for i := 0; i < b.N; i++ {
 		ReadNifti2_2MB()
 	}

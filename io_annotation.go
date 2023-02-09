@@ -3,18 +3,17 @@ package gonii
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"github.com/okieraised/gonii/internal/system"
 	"github.com/okieraised/gonii/pkg/nifti"
-)
-
-const (
-	DefaultAnnotationOutFile = "./segmentation.nii.gz"
+	"os"
 )
 
 type Segmentation struct {
 	nii1Hdr     *nifti.Nii1Header
 	nii2Hdr     *nifti.Nii2Header
+	img         *nifti.Nii
 	outFile     string
 	compression bool
 	Annotations []SegmentCoordinate
@@ -27,6 +26,16 @@ type SegmentCoordinate struct {
 	Y     int64 `json:"y"`
 	Z     int64 `json:"z"`
 	T     int64 `json:"t"`
+}
+
+func NewSegmentation(opts ...SegmentationOption) *Segmentation {
+	seg := &Segmentation{
+		compression: true,
+	}
+	for _, opt := range opts {
+		opt(seg)
+	}
+	return seg
 }
 
 type SegmentationOption func(s *Segmentation)
@@ -63,55 +72,78 @@ func WithNii2Hdr(hdr *nifti.Nii2Header) SegmentationOption {
 	}
 }
 
-func AnnotationJsonToNii(annotations []SegmentCoordinate, opts ...SegmentationOption) error {
-	seg := &Segmentation{
-		Annotations: annotations,
-		compression: true,
-		outFile:     DefaultAnnotationOutFile,
+// WithAnnotations allows users to specify the annotation coordinates to convert to NIfTI file
+func WithAnnotations(annotations []SegmentCoordinate) SegmentationOption {
+	return func(s *Segmentation) {
+		s.Annotations = annotations
 	}
-	for _, opt := range opts {
-		opt(seg)
+}
+
+// WithImage allows users to specify the NIfTI image structure to convert to (x,y,z,t) coordinate array
+func WithImage(image *nifti.Nii) SegmentationOption {
+	return func(s *Segmentation) {
+		s.img = image
+	}
+}
+
+// AnnotationNiiToJson converts the NIfTI file to a corresponding annotation coordinates (x,y,z,t) array
+func (s *Segmentation) AnnotationNiiToJson() error {
+	voxels := s.img.GetVoxels()
+
+	var res []SegmentCoordinate
+
+	for x := int64(0); x < s.img.Nx; x++ {
+		for y := int64(0); y < s.img.Ny; y++ {
+			for z := int64(0); z < s.img.Nz; z++ {
+				for t := int64(0); t < s.img.Nt; t++ {
+					val := voxels.Get(x, y, z, t)
+					if val != 0 {
+						coord := SegmentCoordinate{
+							X:     x,
+							Y:     y,
+							Z:     z,
+							T:     t,
+							Value: int64(val),
+						}
+						res = append(res, coord)
+					}
+				}
+			}
+		}
 	}
 
-	if seg.nii1Hdr == nil && seg.nii2Hdr == nil {
-		return errors.New("at least one header structure must be specified")
-	}
-
-	if (seg.nii1Hdr != nil && seg.nii2Hdr != nil) || (seg.nii1Hdr == nil && seg.nii2Hdr != nil) {
-		err := seg.convertSegmentationToNii2()
+	if s.outFile != "" {
+		file, err := os.Create(s.outFile)
 		if err != nil {
 			return err
 		}
-	} else {
-		err := seg.convertSegmentationToNii1()
+		defer file.Close()
+		dataset, err := json.MarshalIndent(res, "", "\t")
+		_, err = file.Write(dataset)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-func AnnotationNiiToJson(annotations []SegmentCoordinate, opts ...SegmentationOption) error {
-	seg := &Segmentation{
-		Annotations: annotations,
-		compression: true,
-		outFile:     DefaultAnnotationOutFile,
+// AnnotationJsonToNii converts the annotation coordinates (x,y,z,t) array to a corresponding NIfTI file
+func (s *Segmentation) AnnotationJsonToNii() error {
+	if s.Annotations == nil {
+		return errors.New("no input annotations is specified")
 	}
-	for _, opt := range opts {
-		opt(seg)
-	}
-
-	if seg.nii1Hdr == nil && seg.nii2Hdr == nil {
+	if s.nii1Hdr == nil && s.nii2Hdr == nil {
 		return errors.New("at least one header structure must be specified")
 	}
 
-	if (seg.nii1Hdr != nil && seg.nii2Hdr != nil) || (seg.nii1Hdr == nil && seg.nii2Hdr != nil) {
-		err := seg.convertSegmentationToNii2()
+	if (s.nii1Hdr != nil && s.nii2Hdr != nil) || (s.nii1Hdr == nil && s.nii2Hdr != nil) {
+		err := s.convertSegmentationToNii2()
 		if err != nil {
 			return err
 		}
 	} else {
-		err := seg.convertSegmentationToNii1()
+		err := s.convertSegmentationToNii1()
 		if err != nil {
 			return err
 		}
@@ -180,19 +212,22 @@ func (s *Segmentation) convertSegmentationToNii1() error {
 		return err
 	}
 
-	wr, err := NewNiiWriter(s.outFile,
-		WithCompression(s.compression),
-		WithVersion(nifti.NIIVersion1),
-		WithNii1Header(s.nii1Hdr),
-		WithNIfTIData(&nifti.Nii{Volume: rawImg}),
-	)
-	if err != nil {
-		return err
+	if s.outFile != "" {
+		wr, err := NewNiiWriter(s.outFile,
+			WithCompression(s.compression),
+			WithVersion(nifti.NIIVersion1),
+			WithNii1Header(s.nii1Hdr),
+			WithNIfTIData(&nifti.Nii{Volume: rawImg}),
+		)
+		if err != nil {
+			return err
+		}
+		err = wr.WriteToFile()
+		if err != nil {
+			return err
+		}
 	}
-	err = wr.WriteToFile()
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 
@@ -256,18 +291,20 @@ func (s *Segmentation) convertSegmentationToNii2() error {
 		return err
 	}
 
-	wr, err := NewNiiWriter(s.outFile,
-		WithCompression(s.compression),
-		WithVersion(nifti.NIIVersion2),
-		WithNii1Header(s.nii1Hdr),
-		WithNIfTIData(&nifti.Nii{Volume: rawImg}),
-	)
-	if err != nil {
-		return err
-	}
-	err = wr.WriteToFile()
-	if err != nil {
-		return err
+	if s.outFile != "" {
+		wr, err := NewNiiWriter(s.outFile,
+			WithCompression(s.compression),
+			WithVersion(nifti.NIIVersion2),
+			WithNii2Header(s.nii2Hdr),
+			WithNIfTIData(&nifti.Nii{Volume: rawImg}),
+		)
+		if err != nil {
+			return err
+		}
+		err = wr.WriteToFile()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
