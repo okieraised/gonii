@@ -77,11 +77,6 @@ func AnnotationJsonToNii(annotations []SegmentCoordinate, opts ...SegmentationOp
 		return errors.New("at least one header structure must be specified")
 	}
 
-	err := seg.convertSegmentationToNii1()
-	if err != nil {
-		return err
-	}
-
 	if (seg.nii1Hdr != nil && seg.nii2Hdr != nil) || (seg.nii1Hdr == nil && seg.nii2Hdr != nil) {
 		err := seg.convertSegmentationToNii2()
 		if err != nil {
@@ -125,7 +120,6 @@ func (s *Segmentation) convertSegmentationToNii1() error {
 		var byteCode float64 = 1
 		_, ok := valMapper[coord.Value]
 		if !ok {
-
 			valMapper[coord.Value] = byteCode
 			byteCode++
 		} else {
@@ -189,5 +183,64 @@ func (s *Segmentation) convertSegmentationToNii2() error {
 	if s.nii2Hdr.Bitpix <= 0 {
 		return errors.New("bitpix value must be larger than 0")
 	}
+
+	nx, ny, nz, nt := s.nii2Hdr.Dim[1], s.nii2Hdr.Dim[2], s.nii2Hdr.Dim[3], s.nii2Hdr.Dim[4]
+	datatype := int32(s.nii1Hdr.Datatype)
+
+	vox := nifti.NewVoxels(nx, ny, nz, nt, datatype)
+	valMapper := map[any]float64{}
+
+	// NIfTI can have multiple annotations on the same file,
+	// so we have to assign the same pixel value for coordinates with same value
+	for _, coord := range s.Annotations {
+		var byteCode float64 = 1
+		_, ok := valMapper[coord.Value]
+		if !ok {
+			valMapper[coord.Value] = byteCode
+			byteCode++
+		} else {
+			vox.Set(coord.X, coord.Y, coord.Z, coord.T, valMapper[coord.Value])
+		}
+	}
+
+	// Create a zero-filled voxel slice then we convert the voxel at each index from float64 to []byte
+	nByPer, _ := nifti.AssignDatatypeSize(datatype)
+	rawImg := make([]byte, vox.GetRawByteSize(), vox.GetRawByteSize())
+	for index, voxel := range vox.GetDataset() {
+		bVal, err := nifti.ConvertVoxelToBytes(
+			voxel,
+			s.nii2Hdr.SclSlope,
+			s.nii2Hdr.SclInter,
+			int32(s.nii2Hdr.Datatype),
+			system.NativeEndian,
+			int32(nByPer),
+		)
+		if err != nil {
+			return err
+		}
+		copy(rawImg[index*int(nByPer):(index+1)*int(nByPer)], bVal)
+	}
+
+	// Export segmentation to file
+	hdrBuf := &bytes.Buffer{}
+	err := binary.Write(hdrBuf, system.NativeEndian, s.nii1Hdr)
+	if err != nil {
+		return err
+	}
+
+	wr, err := NewNiiWriter(s.outFile,
+		WithCompression(s.compression),
+		WithVersion(nifti.NIIVersion2),
+		WithNii1Header(s.nii1Hdr),
+		WithNIfTIData(&nifti.Nii{Volume: rawImg}),
+	)
+	if err != nil {
+		return err
+	}
+	err = wr.WriteToFile()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
