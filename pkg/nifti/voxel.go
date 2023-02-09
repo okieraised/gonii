@@ -21,14 +21,40 @@ func NewVoxels(dimX, dimY, dimZ, dimT int64, datatype int32) *Voxels {
 	}
 }
 
+// Set sets the value of voxel at index calculated from x, y, z, t input
 func (v *Voxels) Set(x, y, z, t int64, val float64) {
 	idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
 	v.voxel[idx] = val
 }
 
+// Get returns the value of voxel at index calculated from x, y, z, t input
 func (v *Voxels) Get(x, y, z, t int64) float64 {
 	idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
 	return v.voxel[idx]
+}
+
+// GetSlice returns the values of voxel as a 1-D slice of float64 calculated from z, t input
+func (v *Voxels) GetSlice(z, t int64) []float64 {
+	res := make([]float64, 0)
+	for x := int64(0); x < v.dimX; x++ {
+		for y := int64(0); y < v.dimY; y++ {
+			res = append(res, v.Get(x, y, z, t))
+		}
+	}
+	return res
+}
+
+// GetVolume returns the values of voxel as a 1-D slice of float64 calculated from t input
+func (v *Voxels) GetVolume(t int64) []float64 {
+	res := make([]float64, 0)
+	for x := int64(0); x < v.dimX; x++ {
+		for y := int64(0); y < v.dimY; y++ {
+			for z := int64(0); z < v.dimZ; z++ {
+				res = append(res, v.Get(x, y, z, t))
+			}
+		}
+	}
+	return res
 }
 
 func (v *Voxels) Len() int {
