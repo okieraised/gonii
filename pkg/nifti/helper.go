@@ -2,11 +2,11 @@ package nifti
 
 import (
 	"bytes"
-	"compress/gzip"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	gzip "github.com/klauspost/pgzip"
 	"github.com/okieraised/gonii/internal/system"
 	"math"
 	"os"

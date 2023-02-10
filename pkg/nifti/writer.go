@@ -2,10 +2,10 @@ package nifti
 
 import (
 	"bytes"
-	"compress/gzip"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	gzip "github.com/klauspost/pgzip"
 	"github.com/okieraised/gonii/internal/system"
 	"math"
 	"os"

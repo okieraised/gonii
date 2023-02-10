@@ -84,7 +84,7 @@ func TestNewSegmentation_JsonToNii(t *testing.T) {
 		WithAnnotations(annotations),
 		WithNii1Hdr(rd.GetHeader(false).(*nifti.Nii1Header)),
 		WithSegCompression(true),
-		WithOutFile("/home/tripg/workspace/gonii_test/int16_seg_9223_2.nii.gz"),
+		WithOutFile("/home/tripg/workspace/gonii_test/int16_seg_10223_2.nii.gz"),
 	)
 
 	err = s.AnnotationJsonToNii()

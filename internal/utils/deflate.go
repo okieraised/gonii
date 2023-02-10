@@ -2,7 +2,7 @@ package utils
 
 import (
 	"bytes"
-	"compress/gzip"
+	gzip "github.com/klauspost/pgzip"
 	"io"
 )
 
