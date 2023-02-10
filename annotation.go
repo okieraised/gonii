@@ -214,10 +214,10 @@ func (s *Segmentation) convertSegmentationToNii1() error {
 
 	if s.outFile != "" {
 		wr, err := NewNiiWriter(s.outFile,
-			WithCompression(s.compression),
-			WithVersion(nifti.NIIVersion1),
-			WithNii1Header(s.nii1Hdr),
-			WithNIfTIData(&nifti.Nii{Volume: rawImg}),
+			WithWriteCompression(s.compression),
+			WithWriteVersion(nifti.NIIVersion1),
+			WithWriteNii1Header(s.nii1Hdr),
+			WithWriteNIfTIData(&nifti.Nii{Volume: rawImg}),
 		)
 		if err != nil {
 			return err
@@ -293,10 +293,10 @@ func (s *Segmentation) convertSegmentationToNii2() error {
 
 	if s.outFile != "" {
 		wr, err := NewNiiWriter(s.outFile,
-			WithCompression(s.compression),
-			WithVersion(nifti.NIIVersion2),
-			WithNii2Header(s.nii2Hdr),
-			WithNIfTIData(&nifti.Nii{Volume: rawImg}),
+			WithWriteCompression(s.compression),
+			WithWriteVersion(nifti.NIIVersion2),
+			WithWriteNii2Header(s.nii2Hdr),
+			WithWriteNIfTIData(&nifti.Nii{Volume: rawImg}),
 		)
 		if err != nil {
 			return err

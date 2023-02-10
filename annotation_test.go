@@ -13,7 +13,7 @@ func TestNewNiiWriter_MakeSegmentation_ToJson(t *testing.T) {
 	assert := assert.New(t)
 
 	filePath := "/home/tripg/workspace/gonii_test/int16_seg_single.nii.gz"
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -48,7 +48,7 @@ func TestNewSegmentation_NiiToJson(t *testing.T) {
 	assert := assert.New(t)
 	filePath := "/home/tripg/workspace/gonii_test/int16_seg_9223_2.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -67,7 +67,7 @@ func TestNewSegmentation_JsonToNii(t *testing.T) {
 	assert := assert.New(t)
 
 	filePath := "./test_data/int16.nii.gz"
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(true))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(true))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)

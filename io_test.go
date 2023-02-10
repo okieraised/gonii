@@ -14,7 +14,7 @@ func TestNewNiiReader_Nii1_Single_Int16(t *testing.T) {
 
 	filePath := "./test_data/int16.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(true))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(true))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -40,7 +40,7 @@ func TestNewNiiReader_Nii2_Single_LR(t *testing.T) {
 
 	filePath := "./test_data/nii2_LR.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(true))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(true))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -73,7 +73,7 @@ func TestNewNiiReader_Nii2_Single_RL(t *testing.T) {
 
 	filePath := "./test_data/nii2_RL.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(true))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(true))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -108,10 +108,10 @@ func TestNewNiiReader_Nii1_Pair(t *testing.T) {
 	headerPath := "./test_data/t1.hdr.gz"
 
 	rd, err := NewNiiReader(
-		WithImageFile(imgPath),
-		WithInMemory(true),
-		WithRetainHeader(true),
-		WithHeaderFile(headerPath),
+		WithReadImageFile(imgPath),
+		WithReadInMemory(true),
+		WithReadRetainHeader(true),
+		WithReadHeaderFile(headerPath),
 	)
 	assert.NoError(err)
 	err = rd.Parse()
@@ -142,7 +142,7 @@ func TestNewNiiWriter_Voxels(t *testing.T) {
 
 	filePath := "./test_data/int16.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -153,8 +153,8 @@ func TestNewNiiWriter_Voxels(t *testing.T) {
 	assert.NoError(err)
 
 	writer, err := NewNiiWriter("./test_data/int16_voxel_output.nii.gz",
-		WithNIfTIData(rd.GetNiiData()),
-		WithCompression(true),
+		WithWriteNIfTIData(rd.GetNiiData()),
+		WithWriteCompression(true),
 	)
 	err = writer.WriteToFile()
 	assert.NoError(err)
@@ -165,7 +165,7 @@ func TestNewNiiWriter_Nii2_Single(t *testing.T) {
 
 	filePath := "./test_data/int16.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -176,9 +176,9 @@ func TestNewNiiWriter_Nii2_Single(t *testing.T) {
 	assert.NoError(err)
 
 	writer, err := NewNiiWriter("./test_data/int16_nii2.nii.gz",
-		WithNIfTIData(rd.GetNiiData()),
-		WithCompression(true),
-		WithVersion(2),
+		WithWriteNIfTIData(rd.GetNiiData()),
+		WithWriteCompression(true),
+		WithWriteVersion(2),
 	)
 	err = writer.WriteToFile()
 	assert.NoError(err)
@@ -189,7 +189,7 @@ func TestNewNiiWriter_Nii1_Pair(t *testing.T) {
 
 	filePath := "./test_data/int16.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -198,8 +198,8 @@ func TestNewNiiWriter_Nii1_Pair(t *testing.T) {
 	assert.NoError(err)
 
 	writer, err := NewNiiWriter("./test_data/int16.img",
-		WithNIfTIData(rd.GetNiiData()),
-		WithCompression(false),
+		WithWriteNIfTIData(rd.GetNiiData()),
+		WithWriteCompression(false),
 		WithWriteHeaderFile(true),
 	)
 	err = writer.WriteToFile()
@@ -211,7 +211,7 @@ func TestNewNiiWriter_Segmentation_Single(t *testing.T) {
 
 	filePath := "/home/tripg/workspace/gonii_test/int16.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -230,8 +230,8 @@ func TestNewNiiWriter_Segmentation_Single(t *testing.T) {
 	assert.NoError(err)
 
 	writer, err := NewNiiWriter("/home/tripg/workspace/gonii_test/int16_seg_single.nii.gz",
-		WithNIfTIData(rd.GetNiiData()),
-		WithCompression(true),
+		WithWriteNIfTIData(rd.GetNiiData()),
+		WithWriteCompression(true),
 	)
 	err = writer.WriteToFile()
 	assert.NoError(err)
@@ -242,7 +242,7 @@ func TestNewNiiWriter_Segmentation_Multi(t *testing.T) {
 
 	filePath := "./test_data/int16.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)
@@ -263,8 +263,8 @@ func TestNewNiiWriter_Segmentation_Multi(t *testing.T) {
 	assert.NoError(err)
 
 	writer, err := NewNiiWriter("./test_data/int16_seg_multi.nii.gz",
-		WithNIfTIData(rd.GetNiiData()),
-		WithCompression(true),
+		WithWriteNIfTIData(rd.GetNiiData()),
+		WithWriteCompression(true),
 	)
 	err = writer.WriteToFile()
 	assert.NoError(err)
@@ -275,7 +275,7 @@ func TestNewNiiWriter_90MB(t *testing.T) {
 
 	filePath := "/home/tripg/workspace/anim3.nii.gz"
 
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
 	assert.NoError(err)

@@ -47,7 +47,7 @@ func BenchmarkNewNiiReader_2_2MB(b *testing.B) {
 
 func ReadNifti90MBCompressed() {
 	filePath := "/home/tripg/workspace/anim3.nii.gz"
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	if err != nil {
 		return
 	}
@@ -59,7 +59,7 @@ func ReadNifti90MBCompressed() {
 
 func ReadNifti90MB() {
 	filePath := "/home/tripg/workspace/anim3.nii"
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	if err != nil {
 		return
 	}
@@ -71,7 +71,7 @@ func ReadNifti90MB() {
 
 func ReadNifti2_2MB() {
 	filePath := "/home/tripg/workspace/int16.nii.gz"
-	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	if err != nil {
 		return
 	}
