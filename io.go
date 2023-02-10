@@ -15,9 +15,14 @@ import (
 
 // NewNiiReader returns a new NIfTI reader
 //
-// Parameters:
-//     - `filePath`         : Input NIfTI file. In case of separate .hdr/.img file, this is the image file (.img)
-func NewNiiReader(filePath string, options ...func(*nifti.NiiReader) error) (nifti.Reader, error) {
+// Options:
+//     - `WithReadInMemory(inMemory bool)`         : Read the whole file into memory
+//     - `WithReadRetainHeader(retainHeader bool)` : Whether to retain the header structure after parsing
+//     - `WithReadHeaderFile(headerFile string)`   : Specify a header file path in case of separate .hdr/.img file
+//     - `WithReadImageFile(niiFile string)`       : Specify an image file path
+//     - `WithReadImageReader(r *bytes.Reader)`    : Specify a header file reader in case of separate .hdr/.img file
+//     - `WithReadHeaderReader(r *bytes.Reader)`   : Specify an image file reader
+func NewNiiReader(options ...func(*nifti.NiiReader) error) (nifti.Reader, error) {
 	// Init new reader
 	reader := new(nifti.NiiReader)
 	reader.SetBinaryOrder(binary.LittleEndian)
@@ -29,39 +34,28 @@ func NewNiiReader(filePath string, options ...func(*nifti.NiiReader) error) (nif
 			return nil, err
 		}
 	}
-
-	// This is inefficient since it read the whole file to the memory
-	// TODO: improve this for large file
-	bData, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check the content type to see if the file is gzipped. Do not depend on just the extensions of the file
-	bData, err = deflateFileContent(bData)
-	reader.SetReader(bytes.NewReader(bData))
 	return reader, nil
 }
 
-// WithInMemory allows option to read the whole file into memory. The default is true.
+// WithReadInMemory allows option to read the whole file into memory. The default is true.
 // This is for future implementation. Currently, all file is read into memory before parsing
-func WithInMemory(inMemory bool) func(*nifti.NiiReader) error {
+func WithReadInMemory(inMemory bool) func(*nifti.NiiReader) error {
 	return func(w *nifti.NiiReader) error {
 		w.SetInMemory(inMemory)
 		return nil
 	}
 }
 
-// WithRetainHeader allows option to keep the header after parsing instead of just keeping the NIfTI data structure
-func WithRetainHeader(retainHeader bool) func(*nifti.NiiReader) error {
+// WithReadRetainHeader allows option to keep the header after parsing instead of just keeping the NIfTI data structure
+func WithReadRetainHeader(retainHeader bool) func(*nifti.NiiReader) error {
 	return func(w *nifti.NiiReader) error {
 		w.SetRetainHeader(retainHeader)
 		return nil
 	}
 }
 
-// WithHeaderFile allows option to specify the separate header file in case of NIfTI pair .hdr/.img
-func WithHeaderFile(headerFile string) func(*nifti.NiiReader) error {
+// WithReadHeaderFile allows option to specify the separate header file in case of NIfTI pair .hdr/.img
+func WithReadHeaderFile(headerFile string) func(*nifti.NiiReader) error {
 	return func(w *nifti.NiiReader) error {
 		bData, err := os.ReadFile(headerFile)
 		if err != nil {
@@ -71,6 +65,34 @@ func WithHeaderFile(headerFile string) func(*nifti.NiiReader) error {
 		bData, err = deflateFileContent(bData)
 		w.SetHdrReader(bytes.NewReader(bData))
 		return nil
+	}
+}
+
+// WithReadImageFile allows option to specify the NIfTI file (.nii.gz or .nii)
+func WithReadImageFile(niiFile string) func(*nifti.NiiReader) error {
+	return func(w *nifti.NiiReader) error {
+		bData, err := os.ReadFile(niiFile)
+		if err != nil {
+			return err
+		}
+		// Check the content type to see if the file is gzipped. Do not depend on just the extensions of the file
+		bData, err = deflateFileContent(bData)
+		w.SetReader(bytes.NewReader(bData))
+		return nil
+	}
+}
+
+// WithReadImageReader allows option for users to specify the NIfTI bytes reader (.nii.gz or .nii)
+func WithReadImageReader(r *bytes.Reader) func(*nifti.NiiReader) {
+	return func(w *nifti.NiiReader) {
+		w.SetReader(r)
+	}
+}
+
+// WithReadHeaderReader allows option for users to specify the separate header file reader in case of NIfTI pair .hdr/.img
+func WithReadHeaderReader(r *bytes.Reader) func(*nifti.NiiReader) {
+	return func(w *nifti.NiiReader) {
+		w.SetHdrReader(r)
 	}
 }
 
@@ -103,33 +125,42 @@ func WithWriteHeaderFile(writeHeaderFile bool) func(*nifti.NiiWriter) {
 	}
 }
 
-// WithCompression sets the option to write compressed NIfTI image to a single file (.nii.gz)
+// WithWriteCompression sets the option to write compressed NIfTI image to a single file (.nii.gz)
 //
 // If true, the whole file will be compressed. Default is false.
-func WithCompression(withCompression bool) func(writer *nifti.NiiWriter) {
+func WithWriteCompression(withCompression bool) func(writer *nifti.NiiWriter) {
 	return func(w *nifti.NiiWriter) {
 		w.SetCompression(withCompression)
 	}
 }
 
-// WithHeader sets the option to allow user to provide predefined NIfTI-1 header structure.
+// WithWriteNii1Header sets the option to allow user to provide predefined NIfTI-1 header structure.
 //
 // If no header provided, the header will be converted from the NIfTI image structure
-func WithHeader(header *nifti.Nii1Header) func(*nifti.NiiWriter) {
+func WithWriteNii1Header(header *nifti.Nii1Header) func(*nifti.NiiWriter) {
 	return func(w *nifti.NiiWriter) {
 		w.SetHeader(header)
 	}
 }
 
-// WithNIfTIData sets the option to allow user to provide predefined NIfTI-1 data structure.
-func WithNIfTIData(data *nifti.Nii) func(writer *nifti.NiiWriter) {
+// WithWriteNii2Header sets the option to allow user to provide predefined NIfTI-2 header structure.
+//
+// If no header provided, the header will be converted from the NIfTI image structure
+func WithWriteNii2Header(header *nifti.Nii2Header) func(*nifti.NiiWriter) {
+	return func(w *nifti.NiiWriter) {
+		w.SetHeader(header)
+	}
+}
+
+// WithWriteNIfTIData sets the option to allow user to provide predefined NIfTI-1 data structure.
+func WithWriteNIfTIData(data *nifti.Nii) func(writer *nifti.NiiWriter) {
 	return func(w *nifti.NiiWriter) {
 		w.SetNiiData(data)
 	}
 }
 
-// WithVersion sets the option to specify the exported NIfTI version (NIfTI-1 or 2). Default is NIfTI-1
-func WithVersion(version int) func(writer *nifti.NiiWriter) {
+// WithWriteVersion sets the option to specify the exported NIfTI version (NIfTI-1 or 2). Default is NIfTI-1
+func WithWriteVersion(version int) func(writer *nifti.NiiWriter) {
 	return func(w *nifti.NiiWriter) {
 		w.SetVersion(version)
 	}

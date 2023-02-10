@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	gzip "github.com/klauspost/pgzip"
 	"github.com/okieraised/gonii/internal/system"
 	"math"
+	"os"
 )
 
 // IsValidDatatype checks whether the datatype is valid for NIFTI format
@@ -203,9 +205,9 @@ func getSliceCode(sliceCode int32) string {
 	return "UNKNOWN"
 }
 
-// assignDatatypeSize sets the number of bytes per voxel and the swapsize based on a datatype code
+// AssignDatatypeSize sets the number of bytes per voxel and the swapsize based on a datatype code
 // returns nByper and swapSize
-func assignDatatypeSize(datatype int32) (int16, int16) {
+func AssignDatatypeSize(datatype int32) (int16, int16) {
 	var nByper, swapSize int16
 	switch datatype {
 	case DT_INT8, DT_UINT8:
@@ -442,7 +444,7 @@ func MakeNewNii1Header(inDim *[8]int16, inDatatype int32) *Nii1Header {
 
 	header.Datatype = int16(datatype)
 
-	nByper, _ := assignDatatypeSize(datatype)
+	nByper, _ := AssignDatatypeSize(datatype)
 	header.Bitpix = 8 * nByper
 	header.Magic = [4]byte{110, 43, 49, 0}
 
@@ -495,7 +497,7 @@ func MakeNewNii2Header(inDim *[8]int64, inDatatype int32) *Nii2Header {
 
 	header.Datatype = int16(datatype)
 
-	nByper, _ := assignDatatypeSize(datatype)
+	nByper, _ := AssignDatatypeSize(datatype)
 	header.Bitpix = 8 * nByper
 	header.Magic = NIFTI_2_MAGIC_SINGLE
 
@@ -535,7 +537,7 @@ func MakeEmptyImageFromImg(img *Nii) ([]byte, error) {
 		bDataLength = bDataLength * img.Nw
 	}
 
-	nByper, _ := assignDatatypeSize(img.Datatype)
+	nByper, _ := AssignDatatypeSize(img.Datatype)
 	bDataLength = bDataLength * int64(nByper)
 
 	// Init a slice of bytes with capacity of bDataLength and initial value of 0
@@ -576,7 +578,7 @@ func MakeEmptyImageFromHdr(hdr *Nii1Header) ([]byte, error) {
 		bDataLength = bDataLength * int64(hdr.Dim[7])
 	}
 
-	nByper, _ := assignDatatypeSize(int32(hdr.Datatype))
+	nByper, _ := AssignDatatypeSize(int32(hdr.Datatype))
 	bDataLength = bDataLength * int64(nByper)
 
 	// Init a slice of bytes with capacity of bDataLength and initial value of 0
@@ -692,4 +694,30 @@ func ConvertVoxelToBytes(voxel, slope, intercept float64, datatype int32, binary
 	default:
 	}
 	return nil, errors.New("unsupported datatype")
+}
+
+func WriteToFile(filePath string, compression bool, dataset []byte) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if compression { // If the compression is set to true, then write a compressed file
+		gzipWriter := gzip.NewWriter(file)
+		_, err = gzipWriter.Write(dataset)
+		if err != nil {
+			return err
+		}
+		err = gzipWriter.Close()
+		if err != nil {
+			return err
+		}
+	} else { // Otherwise, just write normal file
+		_, err = file.Write(dataset)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

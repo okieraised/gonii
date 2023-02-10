@@ -9,7 +9,7 @@ func main() {
 	filePath := "./test_data/int16.nii.gz"
 
 	// Init new reader with option to keep the header structure after parsing
-	rd, err := gonii.NewNiiReader(filePath, gonii.WithRetainHeader(true))
+	rd, err := gonii.NewNiiReader(gonii.WithReadImageFile(filePath), gonii.WithReadRetainHeader(true))
 	if err != nil {
 		panic(err)
 	}

@@ -740,7 +740,7 @@ func (n *Nii) SetVolume(vol []byte) error {
 		bDataLength = bDataLength * n.Nw
 	}
 
-	nByper, _ := assignDatatypeSize(n.Datatype)
+	nByper, _ := AssignDatatypeSize(n.Datatype)
 	bDataLength = bDataLength * int64(nByper)
 
 	if int64(len(vol)) != bDataLength {

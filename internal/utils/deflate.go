@@ -2,8 +2,8 @@ package utils
 
 import (
 	"bytes"
-	"compress/gzip"
-	"io/ioutil"
+	gzip "github.com/klauspost/pgzip"
+	"io"
 )
 
 func DeflateGzip(b []byte) ([]byte, error) {
@@ -14,7 +14,7 @@ func DeflateGzip(b []byte) ([]byte, error) {
 	}
 	defer g.Close()
 
-	p, err := ioutil.ReadAll(g)
+	p, err := io.ReadAll(g)
 	if err != nil {
 		return nil, err
 	}

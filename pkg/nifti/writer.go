@@ -2,10 +2,10 @@ package nifti
 
 import (
 	"bytes"
-	"compress/gzip"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	gzip "github.com/klauspost/pgzip"
 	"github.com/okieraised/gonii/internal/system"
 	"math"
 	"os"
@@ -37,7 +37,6 @@ type NiiWriter struct {
 	niiData         *Nii        // Input NIfTI data to write to file
 	header          interface{} // Input NIfTI header to write to file. If nil, the default header will be constructed
 	version         int         //Specify the version (NIfTI-1 or NIfTI-2) to export
-	//header *Nii1Header // Input NIfTI header to write to file. If nil, the default header will be constructed
 }
 
 func (w *NiiWriter) SetFilePath(filePath string) {
@@ -56,7 +55,7 @@ func (w *NiiWriter) SetNiiData(nii *Nii) {
 	w.niiData = nii
 }
 
-func (w *NiiWriter) SetHeader(hdr *Nii1Header) {
+func (w *NiiWriter) SetHeader(hdr interface{}) {
 	w.header = hdr
 }
 
@@ -187,7 +186,6 @@ func (w *NiiWriter) writePairNii() error {
 // writeSingleNii writes the header and NIfTI image Nii to a single NIfTI file
 func (w *NiiWriter) writeSingleNii() error {
 	var offset []byte
-	defaultPadding := 4
 	var offsetFromHeaderToVoxel int
 
 	// Need to get the number of bytes between the end of header structure and the start of the image data
@@ -203,7 +201,7 @@ func (w *NiiWriter) writeSingleNii() error {
 	if offsetFromHeaderToVoxel > 0 {
 		offset = make([]byte, offsetFromHeaderToVoxel, offsetFromHeaderToVoxel)
 	} else {
-		offset = make([]byte, defaultPadding, defaultPadding)
+		offset = make([]byte, DefaultHeaderPadding, DefaultHeaderPadding)
 	}
 
 	// Make a buffer and write the header to it with default system endian
@@ -240,33 +238,19 @@ func (w *NiiWriter) writeSingleNii() error {
 	}
 
 	// Create a file object from the specified filePath
-	file, err := os.Create(w.filePath)
+	err = WriteToFile(w.filePath, w.compression, dataset)
 	if err != nil {
 		return err
-	}
-	defer file.Close()
-
-	if w.compression { // If the compression is set to true, then write a compressed file
-		gzipWriter := gzip.NewWriter(file)
-		_, err = gzipWriter.Write(dataset)
-		if err != nil {
-			return err
-		}
-		err = gzipWriter.Close()
-		if err != nil {
-			return err
-		}
-	} else { // Otherwise, just write normal file
-		_, err = file.Write(dataset)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
 
 // convertImageToNii1Header returns the header from a NIfTI image structure
 func (w *NiiWriter) convertImageToNii1Header() error {
+	if w.header != nil {
+		return nil
+	}
+
 	if w.niiData == nil {
 		return errors.New("image data structure is nil")
 	}
@@ -389,6 +373,10 @@ func (w *NiiWriter) convertImageToNii1Header() error {
 
 // convertImageToNii1Header returns the header from a NIfTI image structure
 func (w *NiiWriter) convertImageToNii2Header() error {
+	if w.header != nil {
+		return nil
+	}
+
 	if w.niiData == nil {
 		return errors.New("image data structure is nil")
 	}
