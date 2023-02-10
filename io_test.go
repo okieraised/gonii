@@ -269,3 +269,14 @@ func TestNewNiiWriter_Segmentation_Multi(t *testing.T) {
 	err = writer.WriteToFile()
 	assert.NoError(err)
 }
+
+func TestNewNiiWriter_90MB(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "/home/tripg/workspace/anim3.nii.gz"
+
+	rd, err := NewNiiReader(WithImageFile(filePath), WithRetainHeader(false))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+}
