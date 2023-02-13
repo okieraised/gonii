@@ -63,6 +63,9 @@ func WithReadHeaderFile(headerFile string) func(*nifti.NiiReader) error {
 		}
 		// Check the content type to see if the file is gzipped. Do not depend on just the extensions of the file
 		bData, err = deflateFileContent(bData)
+		if err != nil {
+			return err
+		}
 		w.SetHdrReader(bytes.NewReader(bData))
 		return nil
 	}
@@ -77,22 +80,45 @@ func WithReadImageFile(niiFile string) func(*nifti.NiiReader) error {
 		}
 		// Check the content type to see if the file is gzipped. Do not depend on just the extensions of the file
 		bData, err = deflateFileContent(bData)
+		if err != nil {
+			return err
+		}
 		w.SetReader(bytes.NewReader(bData))
 		return nil
 	}
 }
 
 // WithReadImageReader allows option for users to specify the NIfTI bytes reader (.nii.gz or .nii)
-func WithReadImageReader(r *bytes.Reader) func(*nifti.NiiReader) {
-	return func(w *nifti.NiiReader) {
-		w.SetReader(r)
+func WithReadImageReader(r *bytes.Reader) func(*nifti.NiiReader) error {
+	return func(w *nifti.NiiReader) error {
+		bArr := make([]byte, r.Len())
+		_, err := r.Read(bArr)
+		if err != nil {
+			return err
+		}
+		bArr, err = deflateFileContent(bArr)
+		if err != nil {
+			return err
+		}
+		w.SetReader(bytes.NewReader(bArr))
+		return nil
 	}
 }
 
 // WithReadHeaderReader allows option for users to specify the separate header file reader in case of NIfTI pair .hdr/.img
-func WithReadHeaderReader(r *bytes.Reader) func(*nifti.NiiReader) {
-	return func(w *nifti.NiiReader) {
+func WithReadHeaderReader(r *bytes.Reader) func(*nifti.NiiReader) error {
+	return func(w *nifti.NiiReader) error {
+		bArr := make([]byte, r.Len())
+		_, err := r.Read(bArr)
+		if err != nil {
+			return err
+		}
+		bArr, err = deflateFileContent(bArr)
+		if err != nil {
+			return err
+		}
 		w.SetHdrReader(r)
+		return nil
 	}
 }
 
