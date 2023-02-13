@@ -1,11 +1,13 @@
 package gonii
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"github.com/okieraised/gonii/pkg/matrix"
 	"github.com/okieraised/gonii/pkg/nifti"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -278,5 +280,32 @@ func TestNewNiiWriter_90MB(t *testing.T) {
 	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(false))
 	assert.NoError(err)
 	err = rd.Parse()
+	assert.NoError(err)
+}
+
+func TestNewNiiWriter_Nii2_BytesReader(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "./test_data/int16.nii.gz"
+
+	bContent, err := os.ReadFile(filePath)
+	assert.NoError(err)
+
+	rd, err := NewNiiReader(WithReadImageReader(bytes.NewReader(bContent)))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	voxels := rd.GetNiiData().GetVoxels()
+
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	writer, err := NewNiiWriter("./test_data/int16_nii2.nii.gz",
+		WithWriteNIfTIData(rd.GetNiiData()),
+		WithWriteCompression(true),
+		WithWriteVersion(2),
+	)
+	err = writer.WriteToFile()
 	assert.NoError(err)
 }
