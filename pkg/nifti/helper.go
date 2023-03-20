@@ -747,8 +747,8 @@ func RLEEncode(original []float64) ([]float64, error) {
 		rleEncoded = append(rleEncoded, count)
 	}
 
-	fmt.Println("rleEncoded", rleEncoded)
-	fmt.Println("len(rleEncoded)", len(rleEncoded))
+	//fmt.Println("rleEncoded", rleEncoded)
+	//fmt.Println("len(rleEncoded)", len(rleEncoded))
 
 	return rleEncoded, nil
 }
