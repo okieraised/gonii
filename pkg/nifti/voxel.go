@@ -1,8 +1,6 @@
 package nifti
 
 import (
-	"errors"
-	"fmt"
 	"github.com/okieraised/gonii/internal/utils"
 )
 
@@ -93,35 +91,9 @@ func (v *Voxels) Histogram(bins int) (utils.Histogram, error) {
 }
 
 // RLEEncode encodes the 1-D float64 array using the RLE encoding
-func (v *Voxels) RLEEncode() error {
-	var rleEncoded []float64
-
-	if len(v.voxel) == 0 {
-		return errors.New("voxel array has length zero")
-	}
-
+func (v *Voxels) RLEEncode() ([]float64, error) {
 	//v.voxel = []float64{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-
-	for i := 0; i < len(v.voxel); i++ {
-		var count float64 = 1
-		if i == 0 && v.voxel[i] != 0 {
-			rleEncoded = append(rleEncoded, 0)
-		}
-		for {
-			if i < len(v.voxel)-1 && v.voxel[i] == v.voxel[i+1] {
-				count++
-				i++
-			} else {
-				break
-			}
-		}
-		rleEncoded = append(rleEncoded, count)
-	}
-
-	fmt.Println("rleEncoded", rleEncoded)
-	fmt.Println("len(rleEncoded)", len(rleEncoded))
-
-	return nil
+	return RLEEncode(v.voxel)
 }
 
 //var currentVal, lastVal float64

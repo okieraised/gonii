@@ -721,3 +721,62 @@ func WriteToFile(filePath string, compression bool, dataset []byte) error {
 	}
 	return nil
 }
+
+func RLEEncode(original []float64) ([]float64, error) {
+	var rleEncoded []float64
+
+	if len(original) == 0 {
+		return nil, errors.New("array has length zero")
+	}
+
+	//v.voxel = []float64{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+
+	for i := 0; i < len(original); i++ {
+		var count float64 = 1
+		if i == 0 && original[i] != 0 {
+			rleEncoded = append(rleEncoded, 0)
+		}
+		for {
+			if i < len(original)-1 && original[i] == original[i+1] {
+				count++
+				i++
+			} else {
+				break
+			}
+		}
+		rleEncoded = append(rleEncoded, count)
+	}
+
+	fmt.Println("rleEncoded", rleEncoded)
+	fmt.Println("len(rleEncoded)", len(rleEncoded))
+
+	return rleEncoded, nil
+}
+
+//func RLEDecode(compressed []float64, val float64) ([]float64, error) {
+//	var rleEncoded []float64
+//
+//	if len(compressed) == 0 {
+//		return nil, errors.New("array has length zero")
+//	}
+//
+//	var original []float64
+//
+//	var s []int
+//	for idx, segmentLength := range compressed {
+//		if idx%2 == 0 {
+//			s = make([]int, segmentLength)
+//			for i := range s {
+//				s[i] = 0
+//			}
+//		} else {
+//			s = make([]int, segmentLength)
+//			for i := range s {
+//				s[i] = 1
+//			}
+//		}
+//		inflatedSeg = append(inflatedSeg, s...)
+//	}
+//
+//	return rleEncoded, nil
+//}
