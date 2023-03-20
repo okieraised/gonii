@@ -95,6 +95,11 @@ func TestNewSegmentation_JsonToNii(t *testing.T) {
 type Annotation1DRLE struct {
 	Segment []int64 `json:"segment"`
 	ZIndex  int64
+	TIndex  int64
+}
+
+func DeflateRLESegmentation() {
+
 }
 
 func TestSegmentation_Annotation(t *testing.T) {
