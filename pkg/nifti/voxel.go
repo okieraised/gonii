@@ -1,6 +1,10 @@
 package nifti
 
-import "github.com/okieraised/gonii/internal/utils"
+import (
+	"errors"
+	"fmt"
+	"github.com/okieraised/gonii/internal/utils"
+)
 
 // Voxels defines the structure of Voxel values
 type Voxels struct {
@@ -87,3 +91,58 @@ func (v *Voxels) CountNoneZero() (pos, neg, zero int) {
 func (v *Voxels) Histogram(bins int) (utils.Histogram, error) {
 	return utils.Hist(bins, v.voxel)
 }
+
+// RLEEncode encodes the 1-D float64 array using the RLE encoding
+func (v *Voxels) RLEEncode() error {
+	var rleEncoded []float64
+
+	if len(v.voxel) == 0 {
+		return errors.New("voxel array has length zero")
+	}
+
+	//v.voxel = []float64{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+
+	for i := 0; i < len(v.voxel); i++ {
+		var count float64 = 1
+		if i == 0 && v.voxel[i] != 0 {
+			rleEncoded = append(rleEncoded, 0)
+		}
+		for {
+			if i < len(v.voxel)-1 && v.voxel[i] == v.voxel[i+1] {
+				count++
+				i++
+			} else {
+				break
+			}
+		}
+		rleEncoded = append(rleEncoded, count)
+	}
+
+	fmt.Println("rleEncoded", rleEncoded)
+	fmt.Println("len(rleEncoded)", len(rleEncoded))
+
+	return nil
+}
+
+//var currentVal, lastVal float64
+//var count float64 = 0
+//for idx, voxVal := range v.voxel {
+//	if idx == 0 {
+//		currentVal, lastVal = voxVal, voxVal
+//		if voxVal != 0 {
+//			rleEncoded = append(rleEncoded, 0)
+//		}
+//	}
+//	lastVal = currentVal
+//	currentVal = voxVal
+//
+//	if currentVal == lastVal {
+//		count++
+//		if idx == len(v.voxel)-1 {
+//			rleEncoded = append(rleEncoded, count)
+//		}
+//	} else {
+//		rleEncoded = append(rleEncoded, count)
+//		count = 1
+//	}
+//}
