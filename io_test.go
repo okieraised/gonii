@@ -309,3 +309,16 @@ func TestNewNiiWriter_Nii2_BytesReader(t *testing.T) {
 	err = writer.WriteToFile()
 	assert.NoError(err)
 }
+
+func TestNewNiiReader_2(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "/home/tripg/Downloads/visiblehuman.nii"
+
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(true))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	fmt.Println(rd.GetHeader(true))
+}
