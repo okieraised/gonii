@@ -93,13 +93,31 @@ func TestNewSegmentation_JsonToNii(t *testing.T) {
 }
 
 type Annotation1DRLE struct {
-	Segment []int64 `json:"segment"`
-	ZIndex  int64
-	TIndex  int64
+	segment  []int64
+	deflated []int64
+	zIndex   int64
+	tIndex   int64
+	pixVal   int64
 }
 
-func DeflateRLESegmentation() {
+func (a *Annotation1DRLE) DeflateRLESegmentation() {
+	var deflatedSegment []int64
 
+	for idx, segmentLength := range a.segment {
+		var s []int64
+		s = make([]int64, segmentLength)
+		if idx%2 == 0 {
+			for i := range s {
+				s[i] = 0
+			}
+		} else {
+			for i := range s {
+				s[i] = a.pixVal
+			}
+		}
+		deflatedSegment = append(deflatedSegment, s...)
+	}
+	a.deflated = deflatedSegment
 }
 
 func TestSegmentation_Annotation(t *testing.T) {
