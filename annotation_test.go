@@ -102,11 +102,8 @@ func TestSegmentation_Annotation(t *testing.T) {
 	err = rd.Parse()
 	assert.NoError(err)
 
-	_, err = rd.GetNiiData().GetVoxels().RLEEncode()
-	assert.NoError(err)
-
-	return
-
+	//_, err = rd.GetNiiData().GetVoxels().RLEEncode()
+	//assert.NoError(err)
 	fmt.Println(rd.GetNiiData().GetVoxels().CountNoneZero())
 	fmt.Println("Here", rd.GetNiiData().Nx*rd.GetNiiData().Ny, rd.GetNiiData().Ny, rd.GetNiiData().Nt)
 
@@ -114,8 +111,7 @@ func TestSegmentation_Annotation(t *testing.T) {
 	seg2 := []int{12933, 8, 226, 16, 222, 19, 220, 22, 216, 25, 214, 28, 211, 30, 209, 32, 207, 34, 205, 36, 204, 37, 202, 39, 201, 40, 199, 43, 197, 44, 195, 46, 67, 17, 110, 46, 63, 24, 106, 47, 61, 28, 104, 47, 60, 30, 103, 47, 58, 33, 102, 47, 57, 36, 99, 48, 56, 39, 97, 48, 55, 41, 96, 48, 54, 43, 95, 48, 53, 43, 96, 48, 52, 43, 97, 48, 52, 42, 98, 15, 2, 31, 51, 43, 98, 16, 1, 31, 51, 42, 99, 17, 1, 30, 51, 42, 99, 48, 50, 42, 100, 48, 50, 42, 100, 48, 50, 41, 101, 48, 50, 40, 103, 47, 49, 41, 103, 47, 49, 40, 105, 46, 50, 39, 105, 46, 50, 39, 106, 45, 50, 39, 107, 44, 50, 37, 110, 43, 50, 36, 112, 42, 50, 35, 115, 40, 50, 34, 117, 38, 50, 34, 119, 36, 51, 34, 120, 34, 52, 33, 123, 30, 54, 33, 124, 27, 56, 33, 126, 23, 58, 33, 128, 19, 60, 29, 134, 14, 63, 27, 213, 26, 215, 25, 215, 24, 216, 24, 217, 23, 217, 23, 217, 23, 217, 23, 217, 17, 223, 15, 225, 14, 226, 14, 227, 12, 228, 12, 229, 11, 230, 10, 231, 9, 232, 8, 234, 6, 28016}
 	zIndex := 32
 
-	inflatedSeg := []int{}
-
+	inflatedSeg1 := []int{}
 	var s []int
 	for idx, segmentLength := range seg1 {
 		if idx%2 == 0 {
@@ -129,40 +125,64 @@ func TestSegmentation_Annotation(t *testing.T) {
 				s[i] = 1
 			}
 		}
-		inflatedSeg = append(inflatedSeg, s...)
+		inflatedSeg1 = append(inflatedSeg1, s...)
 	}
 
-	fmt.Println(sum(seg1), sum(seg2), zIndex, len(inflatedSeg))
+	inflatedSeg2 := []int{}
+	for idx, segmentLength := range seg2 {
+		if idx%2 == 0 {
+			s = make([]int, segmentLength)
+			for i := range s {
+				s[i] = 0
+			}
+		} else {
+			s = make([]int, segmentLength)
+			for i := range s {
+				s[i] = 2
+			}
+		}
+		inflatedSeg2 = append(inflatedSeg2, s...)
+	}
+
+	fmt.Println(inflatedSeg1)
+	fmt.Println(inflatedSeg2)
+
+	fmt.Println(sum(seg1), sum(seg2), zIndex, len(inflatedSeg1), len(inflatedSeg2))
+
+	for i := 0; i < len(inflatedSeg1); i++ {
+
+	}
+
 	//fmt.Println(len(rd.GetNiiData().GetVoxels().GetSlice(32, 0)))
 	//fmt.Println(rd.GetNiiData().GetVoxels().GetSlice(32, 0))
 
 	//voxels := rd.GetNiiData().GetVoxels().GetVolume(0)
 
-	voxels := rd.GetNiiData().GetVoxels()
-
-	for x := int64(0); x < rd.GetNiiData().Nx; x++ {
-		for y := int64(0); y < rd.GetNiiData().Ny; y++ {
-			for z := int64(0); z < rd.GetNiiData().Nz; z++ {
-				for tt := int64(0); tt < rd.GetNiiData().Nt; tt++ {
-					if z == int64(zIndex) {
-						voxels.Set(x, y, z, tt, float64(inflatedSeg[x*y]))
-					} else {
-						voxels.Set(x, y, z, tt, 0)
-					}
-				}
-			}
-		}
-	}
-
-	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
-	assert.NoError(err)
-
-	writer, err := NewNiiWriter("/home/tripg/workspace/int16_seg.nii.gz",
-		WithWriteNIfTIData(rd.GetNiiData()),
-		WithWriteCompression(true),
-	)
-	err = writer.WriteToFile()
-	assert.NoError(err)
+	//voxels := rd.GetNiiData().GetVoxels()
+	//
+	//for x := int64(0); x < rd.GetNiiData().Nx; x++ {
+	//	for y := int64(0); y < rd.GetNiiData().Ny; y++ {
+	//		for z := int64(0); z < rd.GetNiiData().Nz; z++ {
+	//			for tt := int64(0); tt < rd.GetNiiData().Nt; tt++ {
+	//				if z == int64(zIndex) {
+	//					voxels.Set(x, y, z, tt, float64(inflatedSeg1[x*y]))
+	//				} else {
+	//					voxels.Set(x, y, z, tt, 0)
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+	//
+	//err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	//assert.NoError(err)
+	//
+	//writer, err := NewNiiWriter("/home/tripg/workspace/int16_seg.nii.gz",
+	//	WithWriteNIfTIData(rd.GetNiiData()),
+	//	WithWriteCompression(true),
+	//)
+	//err = writer.WriteToFile()
+	//assert.NoError(err)
 }
 
 func sum(array []int) int {

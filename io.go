@@ -16,12 +16,12 @@ import (
 // NewNiiReader returns a new NIfTI reader
 //
 // Options:
-//     - `WithReadInMemory(inMemory bool)`         : Read the whole file into memory
-//     - `WithReadRetainHeader(retainHeader bool)` : Whether to retain the header structure after parsing
-//     - `WithReadHeaderFile(headerFile string)`   : Specify a header file path in case of separate .hdr/.img file
-//     - `WithReadImageFile(niiFile string)`       : Specify an image file path
-//     - `WithReadImageReader(r *bytes.Reader)`    : Specify a header file reader in case of separate .hdr/.img file
-//     - `WithReadHeaderReader(r *bytes.Reader)`   : Specify an image file reader
+//   - `WithReadInMemory(inMemory bool)`         : Read the whole file into memory
+//   - `WithReadRetainHeader(retainHeader bool)` : Whether to retain the header structure after parsing
+//   - `WithReadHeaderFile(headerFile string)`   : Specify a header file path in case of separate .hdr/.img file
+//   - `WithReadImageFile(niiFile string)`       : Specify an image file path
+//   - `WithReadImageReader(r *bytes.Reader)`    : Specify a header file reader in case of separate .hdr/.img file
+//   - `WithReadHeaderReader(r *bytes.Reader)`   : Specify an image file reader
 func NewNiiReader(options ...func(*nifti.NiiReader) error) (nifti.Reader, error) {
 	// Init new reader
 	reader := new(nifti.NiiReader)

@@ -17,7 +17,7 @@ type Segmentation struct {
 	outFile       string
 	compression   bool
 	annotations   []SegmentCoordinate
-	annotationRLE []SegmentRLE
+	annotationRLE []nifti.SegmentRLE
 }
 
 // SegmentCoordinate defines the structure for segmentation coordinate
@@ -81,7 +81,7 @@ func WithAnnotations(annotations []SegmentCoordinate) SegmentationOption {
 }
 
 // WithSegmentRLE allows users to specify the annotation as RLE-encoded array to convert to NIfTI file
-func WithSegmentRLE(segments []SegmentRLE) SegmentationOption {
+func WithSegmentRLE(segments []nifti.SegmentRLE) SegmentationOption {
 	return func(s *Segmentation) {
 		s.annotationRLE = segments
 	}
@@ -313,6 +313,16 @@ func (s *Segmentation) convertSegmentationToNii2() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// SegmentationRLEToImg converts RLE-encoded segmentations to a single NIfTI image
+func (s *Segmentation) SegmentationRLEToImg() error {
+
+	for _, segment := range s.annotationRLE {
+		segment.Decode()
 	}
 
 	return nil

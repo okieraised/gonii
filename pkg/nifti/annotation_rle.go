@@ -1,6 +1,4 @@
-package gonii
-
-import "github.com/okieraised/gonii/pkg/nifti"
+package nifti
 
 type SegmentRLE struct {
 	encodedSeg []float64
@@ -78,7 +76,7 @@ func (a *SegmentRLE) Decode() {
 }
 
 func (a *SegmentRLE) Encode() error {
-	encodedSegment, err := nifti.RLEEncode(a.decodedSeg)
+	encodedSegment, err := RLEEncode(a.decodedSeg)
 	if err != nil {
 		return err
 	}
