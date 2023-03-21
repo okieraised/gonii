@@ -1,11 +1,11 @@
 package nifti
 
 type SegmentRLE struct {
-	encodedSeg []float64
-	decodedSeg []float64
-	zIndex     float64
-	tIndex     float64
-	pixVal     float64
+	EncodedSeg []float64
+	DecodedSeg []float64
+	ZIndex     float64
+	TIndex     float64
+	PixVal     float64
 }
 
 //type SegmentationRLEOption func(s *SegmentRLE)
@@ -58,7 +58,7 @@ type SegmentRLE struct {
 func (a *SegmentRLE) Decode() {
 	var deflatedSegment []float64
 
-	for idx, segmentLength := range a.encodedSeg {
+	for idx, segmentLength := range a.EncodedSeg {
 		var s []float64
 		s = make([]float64, int(segmentLength))
 		if idx%2 == 0 {
@@ -67,19 +67,19 @@ func (a *SegmentRLE) Decode() {
 			}
 		} else {
 			for i := range s {
-				s[i] = a.pixVal
+				s[i] = a.PixVal
 			}
 		}
 		deflatedSegment = append(deflatedSegment, s...)
 	}
-	a.decodedSeg = deflatedSegment
+	a.DecodedSeg = deflatedSegment
 }
 
 func (a *SegmentRLE) Encode() error {
-	encodedSegment, err := RLEEncode(a.decodedSeg)
+	encodedSegment, err := RLEEncode(a.DecodedSeg)
 	if err != nil {
 		return err
 	}
-	a.encodedSeg = encodedSegment
+	a.EncodedSeg = encodedSegment
 	return nil
 }

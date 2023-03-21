@@ -2,6 +2,7 @@ package nifti
 
 import (
 	"errors"
+	"fmt"
 	"github.com/okieraised/gonii/internal/utils"
 )
 
@@ -106,7 +107,7 @@ func (v *Voxels) MapValueOccurrence() map[float64]int {
 	return valMapper
 }
 
-// ImportAsRLE returns the NIfTI image as an array of RLE-encoded segment
+// ImportAsRLE import the NIfTI image as an array of RLE-encoded segment
 func (v *Voxels) ImportAsRLE() ([]SegmentRLE, error) {
 	valMapper := v.MapValueOccurrence()
 	var result []SegmentRLE
@@ -130,11 +131,11 @@ func (v *Voxels) ImportAsRLE() ([]SegmentRLE, error) {
 				}
 
 				encodedSegment := SegmentRLE{
-					encodedSeg: encoded,
-					decodedSeg: sliceData,
-					zIndex:     float64(z),
-					tIndex:     float64(t),
-					pixVal:     key,
+					EncodedSeg: encoded,
+					DecodedSeg: sliceData,
+					ZIndex:     float64(z),
+					TIndex:     float64(t),
+					PixVal:     key,
 				}
 				result = append(result, encodedSegment)
 			}
@@ -143,16 +144,43 @@ func (v *Voxels) ImportAsRLE() ([]SegmentRLE, error) {
 	return result, nil
 }
 
-// ExportFromRLE reconstruct the NIfTI image from input RLE-encoded 1-D segments
-func (v *Voxels) ExportFromRLE(segments []SegmentRLE) error {
+// ExportSingleFromRLE reconstruct a single NIfTI image from input RLE-encoded 1-D segments
+func (v *Voxels) ExportSingleFromRLE(segments []SegmentRLE) (*Voxels, error) {
 
 	if len(segments) == 0 {
-		return errors.New("segments has length 0")
+		return v, errors.New("segments has length 0")
 	}
 
-	for _, segment := range segments {
-		segment.Decode()
+	originalLength := make([]float64, len(v.voxel))
+	initSegment := segments[0]
+	fmt.Println("initSegment", initSegment.PixVal)
+	initSegment.Decode()
+
+	if len(segments) == 1 {
+		v.voxel = initSegment.DecodedSeg
+		fmt.Println("1", v.MapValueOccurrence())
+		return v, nil
 	}
 
-	return nil
+	//for _, segment := range segments {
+	//	segment.Decode()
+	//	for x := int64(0); x < v.dimX; x++ {
+	//		for y := int64(0); y < v.dimY; y++ {
+	//			for z := int64(0); z < v.dimZ; z++ {
+	//				for t := int64(0); t < v.dimT; t++ {
+	//					if z == int64(segment.ZIndex) {
+	//						idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
+	//						originalLength[idx] = segment.PixVal
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+
+	v.voxel = originalLength
+
+	fmt.Println("1", v.MapValueOccurrence())
+
+	return nil, nil
 }
