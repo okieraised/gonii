@@ -11,12 +11,13 @@ import (
 )
 
 type Segmentation struct {
-	nii1Hdr     *nifti.Nii1Header
-	nii2Hdr     *nifti.Nii2Header
-	img         *nifti.Nii
-	outFile     string
-	compression bool
-	Annotations []SegmentCoordinate
+	nii1Hdr       *nifti.Nii1Header
+	nii2Hdr       *nifti.Nii2Header
+	img           *nifti.Nii
+	outFile       string
+	compression   bool
+	annotations   []SegmentCoordinate
+	annotationRLE []nifti.SegmentRLE
 }
 
 // SegmentCoordinate defines the structure for segmentation coordinate
@@ -75,7 +76,14 @@ func WithNii2Hdr(hdr *nifti.Nii2Header) SegmentationOption {
 // WithAnnotations allows users to specify the annotation coordinates to convert to NIfTI file
 func WithAnnotations(annotations []SegmentCoordinate) SegmentationOption {
 	return func(s *Segmentation) {
-		s.Annotations = annotations
+		s.annotations = annotations
+	}
+}
+
+// WithSegmentRLE allows users to specify the annotation as RLE-encoded array to convert to NIfTI file
+func WithSegmentRLE(segments []nifti.SegmentRLE) SegmentationOption {
+	return func(s *Segmentation) {
+		s.annotationRLE = segments
 	}
 }
 
@@ -130,7 +138,7 @@ func (s *Segmentation) AnnotationNiiToJson() error {
 
 // AnnotationJsonToNii converts the annotation coordinates (x,y,z,t) array to a corresponding NIfTI file
 func (s *Segmentation) AnnotationJsonToNii() error {
-	if s.Annotations == nil {
+	if s.annotations == nil {
 		return errors.New("no input annotations is specified")
 	}
 	if s.nii1Hdr == nil && s.nii2Hdr == nil {
@@ -176,7 +184,7 @@ func (s *Segmentation) convertSegmentationToNii1() error {
 
 	// NIfTI can have multiple annotations on the same file,
 	// so we have to assign the same pixel value for coordinates with same value
-	for _, coord := range s.Annotations {
+	for _, coord := range s.annotations {
 		var byteCode float64 = 1
 		_, ok := valMapper[coord.Value]
 		if !ok {
@@ -255,7 +263,7 @@ func (s *Segmentation) convertSegmentationToNii2() error {
 
 	// NIfTI can have multiple annotations on the same file,
 	// so we have to assign the same pixel value for coordinates with same value
-	for _, coord := range s.Annotations {
+	for _, coord := range s.annotations {
 		var byteCode float64 = 1
 		_, ok := valMapper[coord.Value]
 		if !ok {

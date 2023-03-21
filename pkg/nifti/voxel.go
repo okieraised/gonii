@@ -1,6 +1,9 @@
 package nifti
 
-import "github.com/okieraised/gonii/internal/utils"
+import (
+	"errors"
+	"github.com/okieraised/gonii/internal/utils"
+)
 
 // Voxels defines the structure of Voxel values
 type Voxels struct {
@@ -86,4 +89,85 @@ func (v *Voxels) CountNoneZero() (pos, neg, zero int) {
 // Histogram returns the histogram of the voxels based on the input bins
 func (v *Voxels) Histogram(bins int) (utils.Histogram, error) {
 	return utils.Hist(bins, v.voxel)
+}
+
+// RLEEncode encodes the 1-D float64 array using the RLE encoding
+func (v *Voxels) RLEEncode() ([]float64, error) {
+	//v.voxel = []float64{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+	return RLEEncode(v.voxel)
+}
+
+// MapValueOccurrence maps the occurrence of pixel value as map[float64]int
+func (v *Voxels) MapValueOccurrence() map[float64]int {
+	valMapper := make(map[float64]int)
+	for _, val := range v.voxel {
+		valMapper[val] = valMapper[val] + 1
+	}
+	return valMapper
+}
+
+// ImportAsRLE import the NIfTI image as an array of RLE-encoded segment
+func (v *Voxels) ImportAsRLE() ([]SegmentRLE, error) {
+	valMapper := v.MapValueOccurrence()
+	var result []SegmentRLE
+
+	for z := int64(0); z < v.dimZ; z++ {
+		for t := int64(0); t < v.dimT; t++ {
+			sliceData := v.GetSlice(z, t)
+			for key, _ := range valMapper {
+				if key == 0 {
+					continue
+				}
+				keyArr := make([]float64, len(sliceData))
+				for idx, voxVal := range sliceData {
+					if voxVal == key {
+						keyArr[idx] = key
+					}
+				}
+				encoded, err := RLEEncode(keyArr)
+				if err != nil {
+					return nil, err
+				}
+
+				encodedSegment := SegmentRLE{
+					EncodedSeg: encoded,
+					DecodedSeg: sliceData,
+					ZIndex:     float64(z),
+					TIndex:     float64(t),
+					PixVal:     key,
+				}
+				result = append(result, encodedSegment)
+			}
+		}
+	}
+	return result, nil
+}
+
+// ExportSingleFromRLE reconstruct a single NIfTI image from input RLE-encoded 1-D segments
+func (v *Voxels) ExportSingleFromRLE(segments []SegmentRLE) (*Voxels, error) {
+
+	if len(segments) == 0 {
+		return v, errors.New("segments has length 0")
+	}
+
+	originalLength := make([]float64, len(v.voxel))
+	for _, segment := range segments {
+		segment.Decode()
+		for x := int64(0); x < v.dimX; x++ {
+			for y := int64(0); y < v.dimY; y++ {
+				for z := int64(0); z < v.dimZ; z++ {
+					for t := int64(0); t < v.dimT; t++ {
+						if z == v.dimZ-1-int64(segment.ZIndex) {
+							idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
+							if segment.DecodedSeg[y*v.dimX+x] != 0 {
+								originalLength[idx] = segment.PixVal
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	v.voxel = originalLength
+	return v, nil
 }
