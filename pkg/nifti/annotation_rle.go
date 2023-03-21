@@ -8,52 +8,52 @@ type SegmentRLE struct {
 	pixVal     float64
 }
 
-type SegmentationRLEOption func(s *SegmentRLE)
-
-// WithEncodedSegmentation allows user to specify the RLE-encoded segmentation
-func WithEncodedSegmentation(encodedSeg []float64) SegmentationRLEOption {
-	return func(s *SegmentRLE) {
-		s.encodedSeg = encodedSeg
-	}
-}
-
-// WithDecodedSegmentation allows user to specify the RLE-decoded segmentation
-func WithDecodedSegmentation(decodedSeg []float64) SegmentationRLEOption {
-	return func(s *SegmentRLE) {
-		s.decodedSeg = decodedSeg
-	}
-}
-
-// WithZIndex allows user to specify the z-index of the RLE-encoded segmentation
-func WithZIndex(zIndex float64) SegmentationRLEOption {
-	return func(s *SegmentRLE) {
-		s.zIndex = zIndex
-	}
-}
-
-// WithTIndex allows user to specify the z-index of the RLE-encoded segmentation
-func WithTIndex(tIndex float64) SegmentationRLEOption {
-	return func(s *SegmentRLE) {
-		s.tIndex = tIndex
-	}
-}
-
-// WithPixVal allows user to specify the pixel value of the encoded segment
-func WithPixVal(pixVal float64) SegmentationRLEOption {
-	return func(s *SegmentRLE) {
-		s.pixVal = pixVal
-	}
-}
-
-func NewAnnotationRLE(opts ...SegmentationRLEOption) *SegmentRLE {
-	res := &SegmentRLE{}
-
-	for _, opt := range opts {
-		opt(res)
-	}
-
-	return res
-}
+//type SegmentationRLEOption func(s *SegmentRLE)
+//
+//// WithEncodedSegmentation allows user to specify the RLE-encoded segmentation
+//func WithEncodedSegmentation(encodedSeg []float64) SegmentationRLEOption {
+//	return func(s *SegmentRLE) {
+//		s.encodedSeg = encodedSeg
+//	}
+//}
+//
+//// WithDecodedSegmentation allows user to specify the RLE-decoded segmentation
+//func WithDecodedSegmentation(decodedSeg []float64) SegmentationRLEOption {
+//	return func(s *SegmentRLE) {
+//		s.decodedSeg = decodedSeg
+//	}
+//}
+//
+//// WithZIndex allows user to specify the z-index of the RLE-encoded segmentation
+//func WithZIndex(zIndex float64) SegmentationRLEOption {
+//	return func(s *SegmentRLE) {
+//		s.zIndex = zIndex
+//	}
+//}
+//
+//// WithTIndex allows user to specify the z-index of the RLE-encoded segmentation
+//func WithTIndex(tIndex float64) SegmentationRLEOption {
+//	return func(s *SegmentRLE) {
+//		s.tIndex = tIndex
+//	}
+//}
+//
+//// WithPixVal allows user to specify the pixel value of the encoded segment
+//func WithPixVal(pixVal float64) SegmentationRLEOption {
+//	return func(s *SegmentRLE) {
+//		s.pixVal = pixVal
+//	}
+//}
+//
+//func NewAnnotationRLE(opts ...SegmentationRLEOption) *SegmentRLE {
+//	res := &SegmentRLE{}
+//
+//	for _, opt := range opts {
+//		opt(res)
+//	}
+//
+//	return res
+//}
 
 func (a *SegmentRLE) Decode() {
 	var deflatedSegment []float64

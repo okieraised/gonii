@@ -317,13 +317,3 @@ func (s *Segmentation) convertSegmentationToNii2() error {
 
 	return nil
 }
-
-// SegmentationRLEToImg converts RLE-encoded segmentations to a single NIfTI image
-func (s *Segmentation) SegmentationRLEToImg() error {
-
-	for _, segment := range s.annotationRLE {
-		segment.Decode()
-	}
-
-	return nil
-}

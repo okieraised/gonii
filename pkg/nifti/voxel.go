@@ -1,6 +1,7 @@
 package nifti
 
 import (
+	"errors"
 	"github.com/okieraised/gonii/internal/utils"
 )
 
@@ -96,25 +97,62 @@ func (v *Voxels) RLEEncode() ([]float64, error) {
 	return RLEEncode(v.voxel)
 }
 
-//var currentVal, lastVal float64
-//var count float64 = 0
-//for idx, voxVal := range v.voxel {
-//	if idx == 0 {
-//		currentVal, lastVal = voxVal, voxVal
-//		if voxVal != 0 {
-//			rleEncoded = append(rleEncoded, 0)
-//		}
-//	}
-//	lastVal = currentVal
-//	currentVal = voxVal
-//
-//	if currentVal == lastVal {
-//		count++
-//		if idx == len(v.voxel)-1 {
-//			rleEncoded = append(rleEncoded, count)
-//		}
-//	} else {
-//		rleEncoded = append(rleEncoded, count)
-//		count = 1
-//	}
-//}
+// MapValueOccurrence maps the occurrence of pixel value as map[float64]int
+func (v *Voxels) MapValueOccurrence() map[float64]int {
+	valMapper := make(map[float64]int)
+	for _, val := range v.voxel {
+		valMapper[val] = valMapper[val] + 1
+	}
+	return valMapper
+}
+
+// ImportAsRLE returns the NIfTI image as an array of RLE-encoded segment
+func (v *Voxels) ImportAsRLE() ([]SegmentRLE, error) {
+	valMapper := v.MapValueOccurrence()
+	var result []SegmentRLE
+
+	for z := int64(0); z < v.dimZ; z++ {
+		for t := int64(0); t < v.dimT; t++ {
+			sliceData := v.GetSlice(z, t)
+			for key, _ := range valMapper {
+				if key == 0 {
+					continue
+				}
+				keyArr := make([]float64, len(sliceData))
+				for idx, voxVal := range sliceData {
+					if voxVal == key {
+						keyArr[idx] = key
+					}
+				}
+				encoded, err := RLEEncode(keyArr)
+				if err != nil {
+					return nil, err
+				}
+
+				encodedSegment := SegmentRLE{
+					encodedSeg: encoded,
+					decodedSeg: sliceData,
+					zIndex:     float64(z),
+					tIndex:     float64(t),
+					pixVal:     key,
+				}
+				result = append(result, encodedSegment)
+			}
+		}
+	}
+	return result, nil
+}
+
+// ExportFromRLE reconstruct the NIfTI image from input RLE-encoded 1-D segments
+func (v *Voxels) ExportFromRLE(segments []SegmentRLE) error {
+
+	if len(segments) == 0 {
+		return errors.New("segments has length 0")
+	}
+
+	for _, segment := range segments {
+		segment.Decode()
+	}
+
+	return nil
+}
