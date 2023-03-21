@@ -123,7 +123,7 @@ func TestSegmentation_Annotation(t *testing.T) {
 	}
 
 	encoded := []nifti.SegmentRLE{encoded1, encoded2}
-	encoded = []nifti.SegmentRLE{encoded1}
+	//encoded = []nifti.SegmentRLE{encoded1}
 
 	voxels, err := rd.GetNiiData().GetVoxels().ExportSingleFromRLE(encoded)
 	assert.NoError(err)
@@ -139,15 +139,5 @@ func TestSegmentation_Annotation(t *testing.T) {
 	assert.NoError(err)
 
 	fmt.Println(rd.GetNiiData().GetVoxels().MapValueOccurrence())
-	return
-
-	//err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
-	//assert.NoError(err)
-	//
-	//writer, err := NewNiiWriter("/home/tripg/workspace/int16_seg.nii.gz",
-	//	WithWriteNIfTIData(rd.GetNiiData()),
-	//	WithWriteCompression(true),
-	//)
-	//err = writer.WriteToFile()
-	//assert.NoError(err)
+	fmt.Println(rd.GetNiiData().IJKOrient, rd.GetNiiData().GetOrientation())
 }

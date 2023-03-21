@@ -2,7 +2,6 @@ package nifti
 
 import (
 	"errors"
-	"fmt"
 	"github.com/okieraised/gonii/internal/utils"
 )
 
@@ -152,35 +151,23 @@ func (v *Voxels) ExportSingleFromRLE(segments []SegmentRLE) (*Voxels, error) {
 	}
 
 	originalLength := make([]float64, len(v.voxel))
-	initSegment := segments[0]
-	fmt.Println("initSegment", initSegment.PixVal)
-	initSegment.Decode()
-
-	if len(segments) == 1 {
-		v.voxel = initSegment.DecodedSeg
-		fmt.Println("1", v.MapValueOccurrence())
-		return v, nil
+	for _, segment := range segments {
+		segment.Decode()
+		for x := int64(0); x < v.dimX; x++ {
+			for y := int64(0); y < v.dimY; y++ {
+				for z := int64(0); z < v.dimZ; z++ {
+					for t := int64(0); t < v.dimT; t++ {
+						if z == v.dimZ-1-int64(segment.ZIndex) {
+							idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
+							if segment.DecodedSeg[y*v.dimX+x] != 0 {
+								originalLength[idx] = segment.PixVal
+							}
+						}
+					}
+				}
+			}
+		}
 	}
-
-	//for _, segment := range segments {
-	//	segment.Decode()
-	//	for x := int64(0); x < v.dimX; x++ {
-	//		for y := int64(0); y < v.dimY; y++ {
-	//			for z := int64(0); z < v.dimZ; z++ {
-	//				for t := int64(0); t < v.dimT; t++ {
-	//					if z == int64(segment.ZIndex) {
-	//						idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
-	//						originalLength[idx] = segment.PixVal
-	//					}
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
-
 	v.voxel = originalLength
-
-	fmt.Println("1", v.MapValueOccurrence())
-
-	return nil, nil
+	return v, nil
 }
