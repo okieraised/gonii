@@ -24,14 +24,30 @@ func NewVoxels(dimX, dimY, dimZ, dimT int64, datatype int32) *Voxels {
 	}
 }
 
+func (v *Voxels) FlipSagittal() {
+	v.FlipY()
+	v.FlipZ()
+}
+
+func (v *Voxels) FlipCoronal() {
+	v.FlipY()
+	v.FlipX()
+}
+
+func (v *Voxels) FlipAxial() {
+	v.FlipX()
+	v.FlipZ()
+}
+
 func (v *Voxels) FlipX() {
 	for x := int64(0); x < v.dimX/2; x++ {
 		k := v.dimX - 1 - x
 		for y := int64(0); y < v.dimY; y++ {
 			for z := int64(0); z < v.dimZ; z++ {
 				for t := int64(0); t < v.dimT; t++ {
-					temp := v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+x]
-					v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+x] = v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+k]
+					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
+					temp := v.voxel[idx]
+					v.voxel[idx] = v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+k]
 					v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+k] = temp
 				}
 			}
@@ -45,8 +61,9 @@ func (v *Voxels) FlipY() {
 		for x := int64(0); x < v.dimX; x++ {
 			for z := int64(0); z < v.dimZ; z++ {
 				for t := int64(0); t < v.dimT; t++ {
-					temp := v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+x]
-					v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+x] = v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+k*v.dimX+x]
+					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
+					temp := v.voxel[idx]
+					v.voxel[idx] = v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+k*v.dimX+x]
 					v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+k*v.dimX+x] = temp
 				}
 			}
@@ -60,74 +77,15 @@ func (v *Voxels) FlipZ() {
 		for x := int64(0); x < v.dimX; x++ {
 			for y := int64(0); y < v.dimY; y++ {
 				for t := int64(0); t < v.dimT; t++ {
-					temp := v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+x]
-					v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+x] = v.voxel[t*v.dimZ*v.dimY*v.dimX+k*v.dimY*v.dimX+y*v.dimX+x]
+					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
+					temp := v.voxel[idx]
+					v.voxel[idx] = v.voxel[t*v.dimZ*v.dimY*v.dimX+k*v.dimY*v.dimX+y*v.dimX+x]
 					v.voxel[t*v.dimZ*v.dimY*v.dimX+k*v.dimY*v.dimX+y*v.dimX+x] = temp
 				}
 			}
 		}
 	}
 }
-
-//func (v *Voxels) FlipX() {
-//	for x := int64(0); x < v.dimX/2; x++ {
-//		for y := int64(0); y < v.dimY; y++ {
-//			for z := int64(0); z < v.dimZ; z++ {
-//				for t := int64(0); t < v.dimT; t++ {
-//					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
-//					val := v.voxel[idx]
-//					v.voxel[idx] = v.voxel[len(v.voxel)-int(idx)-1]
-//					v.voxel[len(v.voxel)-int(idx)-1] = val
-//				}
-//			}
-//		}
-//	}
-//}
-
-//func (v *Voxels) FlipX() {
-//	for x := int64(0); x < v.dimX/2; x++ {
-//		for y := int64(0); y < v.dimY; y++ {
-//			for z := int64(0); z < v.dimZ; z++ {
-//				for t := int64(0); t < v.dimT; t++ {
-//					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
-//					val := v.voxel[idx]
-//					v.voxel[idx] = v.voxel[len(v.voxel)-int(idx)-1]
-//					v.voxel[len(v.voxel)-int(idx)-1] = val
-//				}
-//			}
-//		}
-//	}
-//}
-
-//func (v *Voxels) FlipY() {
-//	for x := int64(0); x < v.dimX; x++ {
-//		for y := int64(0); y < v.dimY/2; y++ {
-//			for z := int64(0); z < v.dimZ; z++ {
-//				for t := int64(0); t < v.dimT; t++ {
-//					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
-//					val := v.voxel[idx]
-//					v.voxel[idx] = v.voxel[len(v.voxel)-int(idx)-1]
-//					v.voxel[len(v.voxel)-int(idx)-1] = val
-//				}
-//			}
-//		}
-//	}
-//}
-
-//func (v *Voxels) FlipZ() {
-//	for x := int64(0); x < v.dimX; x++ {
-//		for y := int64(0); y < v.dimY; y++ {
-//			for z := int64(0); z < v.dimZ/2; z++ {
-//				for t := int64(0); t < v.dimT; t++ {
-//					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
-//					val := v.voxel[idx]
-//					v.voxel[idx] = v.voxel[len(v.voxel)-int(z)-1]
-//					v.voxel[len(v.voxel)-int(z)-1] = val
-//				}
-//			}
-//		}
-//	}
-//}
 
 // Set sets the value of voxel at index calculated from x, y, z, t input
 func (v *Voxels) Set(x, y, z, t int64, val float64) {
