@@ -24,21 +24,38 @@ func NewVoxels(dimX, dimY, dimZ, dimT int64, datatype int32) *Voxels {
 	}
 }
 
+// Flip flips the image along the specified axes
+func (v *Voxels) Flip(flipX, flipY, flipZ bool) {
+	if flipX {
+		v.FlipX()
+	}
+	if flipY {
+		v.FlipY()
+	}
+	if flipZ {
+		v.FlipZ()
+	}
+}
+
+// FlipSagittal flips the image along Sagittal-axis (Y-Z)
 func (v *Voxels) FlipSagittal() {
 	v.FlipY()
 	v.FlipZ()
 }
 
+// FlipCoronal flips the image along Coronal-axis (Y-X)
 func (v *Voxels) FlipCoronal() {
 	v.FlipY()
 	v.FlipX()
 }
 
+// FlipAxial flips the image along Axial-axis (X-Z)
 func (v *Voxels) FlipAxial() {
 	v.FlipX()
 	v.FlipZ()
 }
 
+// FlipX flips the image along the x-axis
 func (v *Voxels) FlipX() {
 	for x := int64(0); x < v.dimX/2; x++ {
 		k := v.dimX - 1 - x
@@ -55,6 +72,7 @@ func (v *Voxels) FlipX() {
 	}
 }
 
+// FlipY flips the image along the y-axis
 func (v *Voxels) FlipY() {
 	for y := int64(0); y < v.dimY/2; y++ {
 		k := v.dimY - 1 - y
@@ -71,6 +89,7 @@ func (v *Voxels) FlipY() {
 	}
 }
 
+// FlipZ flips the image along the z-axis
 func (v *Voxels) FlipZ() {
 	for z := int64(0); z < v.dimZ/2; z++ {
 		k := v.dimZ - 1 - z
