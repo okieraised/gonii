@@ -392,11 +392,6 @@ func convertFPSIntoDimInfo(freqDim, phaseDim, sliceDim int32) uint8 {
 	return uint8((freqDim & 0x03) | ((phaseDim & 0x03) << 2) | ((sliceDim & 0x03) << 4))
 }
 
-// Check for valid extension
-func validNIfTIFileExt(filePath string) {
-
-}
-
 func MakeNewNii1Header(inDim *[8]int16, inDatatype int32) *Nii1Header {
 	// Default Dim value
 	defaultDim := [8]int16{3, 1, 1, 1, 1, 1, 1, 1}
