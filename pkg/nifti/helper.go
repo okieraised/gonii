@@ -392,11 +392,6 @@ func convertFPSIntoDimInfo(freqDim, phaseDim, sliceDim int32) uint8 {
 	return uint8((freqDim & 0x03) | ((phaseDim & 0x03) << 2) | ((sliceDim & 0x03) << 4))
 }
 
-// Check for valid extension
-func validNIfTIFileExt(filePath string) {
-
-}
-
 func MakeNewNii1Header(inDim *[8]int16, inDatatype int32) *Nii1Header {
 	// Default Dim value
 	defaultDim := [8]int16{3, 1, 1, 1, 1, 1, 1, 1}
@@ -728,9 +723,6 @@ func RLEEncode(original []float64) ([]float64, error) {
 	if len(original) == 0 {
 		return nil, errors.New("array has length zero")
 	}
-
-	//v.voxel = []float64{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-
 	for i := 0; i < len(original); i++ {
 		var count float64 = 1
 		if i == 0 && original[i] != 0 {
@@ -747,36 +739,5 @@ func RLEEncode(original []float64) ([]float64, error) {
 		rleEncoded = append(rleEncoded, count)
 	}
 
-	//fmt.Println("rleEncoded", rleEncoded)
-	//fmt.Println("len(rleEncoded)", len(rleEncoded))
-
 	return rleEncoded, nil
 }
-
-//func RLEDecode(compressed []float64, val float64) ([]float64, error) {
-//	var rleEncoded []float64
-//
-//	if len(compressed) == 0 {
-//		return nil, errors.New("array has length zero")
-//	}
-//
-//	var original []float64
-//
-//	var s []int
-//	for idx, segmentLength := range compressed {
-//		if idx%2 == 0 {
-//			s = make([]int, segmentLength)
-//			for i := range s {
-//				s[i] = 0
-//			}
-//		} else {
-//			s = make([]int, segmentLength)
-//			for i := range s {
-//				s[i] = 1
-//			}
-//		}
-//		inflatedSeg = append(inflatedSeg, s...)
-//	}
-//
-//	return rleEncoded, nil
-//}

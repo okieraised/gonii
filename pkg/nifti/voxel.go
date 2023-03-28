@@ -12,6 +12,7 @@ type Voxels struct {
 	datatype               int32
 }
 
+// NewVoxels returns a pointer to the Voxels with specified input parameters
 func NewVoxels(dimX, dimY, dimZ, dimT int64, datatype int32) *Voxels {
 	voxel := make([]float64, dimX*dimY*dimZ*dimT)
 	return &Voxels{
@@ -21,6 +22,88 @@ func NewVoxels(dimX, dimY, dimZ, dimT int64, datatype int32) *Voxels {
 		dimZ:     dimZ,
 		dimT:     dimT,
 		datatype: datatype,
+	}
+}
+
+// Flip flips the image along the specified axes
+func (v *Voxels) Flip(flipX, flipY, flipZ bool) {
+	if flipX {
+		v.FlipX()
+	}
+	if flipY {
+		v.FlipY()
+	}
+	if flipZ {
+		v.FlipZ()
+	}
+}
+
+// FlipSagittal flips the image along Sagittal-axis (Y-Z)
+func (v *Voxels) FlipSagittal() {
+	v.FlipY()
+	v.FlipZ()
+}
+
+// FlipCoronal flips the image along Coronal-axis (Y-X)
+func (v *Voxels) FlipCoronal() {
+	v.FlipY()
+	v.FlipX()
+}
+
+// FlipAxial flips the image along Axial-axis (X-Z)
+func (v *Voxels) FlipAxial() {
+	v.FlipX()
+	v.FlipZ()
+}
+
+// FlipX flips the image along the x-axis
+func (v *Voxels) FlipX() {
+	for x := int64(0); x < v.dimX/2; x++ {
+		k := v.dimX - 1 - x
+		for y := int64(0); y < v.dimY; y++ {
+			for z := int64(0); z < v.dimZ; z++ {
+				for t := int64(0); t < v.dimT; t++ {
+					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
+					temp := v.voxel[idx]
+					v.voxel[idx] = v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+k]
+					v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+y*v.dimX+k] = temp
+				}
+			}
+		}
+	}
+}
+
+// FlipY flips the image along the y-axis
+func (v *Voxels) FlipY() {
+	for y := int64(0); y < v.dimY/2; y++ {
+		k := v.dimY - 1 - y
+		for x := int64(0); x < v.dimX; x++ {
+			for z := int64(0); z < v.dimZ; z++ {
+				for t := int64(0); t < v.dimT; t++ {
+					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
+					temp := v.voxel[idx]
+					v.voxel[idx] = v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+k*v.dimX+x]
+					v.voxel[t*v.dimZ*v.dimY*v.dimX+z*v.dimY*v.dimX+k*v.dimX+x] = temp
+				}
+			}
+		}
+	}
+}
+
+// FlipZ flips the image along the z-axis
+func (v *Voxels) FlipZ() {
+	for z := int64(0); z < v.dimZ/2; z++ {
+		k := v.dimZ - 1 - z
+		for x := int64(0); x < v.dimX; x++ {
+			for y := int64(0); y < v.dimY; y++ {
+				for t := int64(0); t < v.dimT; t++ {
+					idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
+					temp := v.voxel[idx]
+					v.voxel[idx] = v.voxel[t*v.dimZ*v.dimY*v.dimX+k*v.dimY*v.dimX+y*v.dimX+x]
+					v.voxel[t*v.dimZ*v.dimY*v.dimX+k*v.dimY*v.dimX+y*v.dimX+x] = temp
+				}
+			}
+		}
 	}
 }
 
@@ -34,6 +117,26 @@ func (v *Voxels) Set(x, y, z, t int64, val float64) {
 func (v *Voxels) Get(x, y, z, t int64) float64 {
 	idx := t*v.dimZ*v.dimY*v.dimX + z*v.dimY*v.dimX + y*v.dimX + x
 	return v.voxel[idx]
+}
+
+// GetDimX returns the dimX information
+func (v *Voxels) GetDimX() int64 {
+	return v.dimX
+}
+
+// GetDimY returns the dimY information
+func (v *Voxels) GetDimY() int64 {
+	return v.dimY
+}
+
+// GetDimZ returns the dimZ information
+func (v *Voxels) GetDimZ() int64 {
+	return v.dimZ
+}
+
+// GetDimT returns the dimT information
+func (v *Voxels) GetDimT() int64 {
+	return v.dimT
 }
 
 // GetSlice returns the values of voxel as a 1-D slice of float64 calculated from z, t input
