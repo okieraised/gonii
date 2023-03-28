@@ -105,12 +105,12 @@ const (
 
 var OrietationToString = map[int]string{
 	NIFTI_UNKNOWN_ORIENT: UNKNOWN,
-	NIFTI_L2R:            "Left-to-Right",
-	NIFTI_R2L:            "Right-to-Left",
-	NIFTI_P2A:            "Posterior-to-Anterior",
-	NIFTI_A2P:            "Anterior-to-Posterior",
-	NIFTI_I2S:            "Inferior-to-Superior",
-	NIFTI_S2I:            "Superior-to-Inferior",
+	NIFTI_L2R:            "Left-to-Right (R)",
+	NIFTI_R2L:            "Right-to-Left (L)",
+	NIFTI_P2A:            "Posterior-to-Anterior (A)",
+	NIFTI_A2P:            "Anterior-to-Posterior (P)",
+	NIFTI_I2S:            "Inferior-to-Superior (S)",
+	NIFTI_S2I:            "Superior-to-Inferior (I)",
 }
 
 const (

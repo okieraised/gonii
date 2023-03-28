@@ -404,7 +404,7 @@ func (r *NiiReader) parseData(header interface{}) error {
 		} else {
 			r.data.QFac = 1
 		}
-		r.data.QtoXYZ = r.data.quaternToMatrix()
+		r.data.QtoXYZ = r.data.QuaternToMatrix()
 		r.data.QformCode = qFormCode
 	}
 
@@ -495,7 +495,7 @@ func (r *NiiReader) parseData(header interface{}) error {
 	affine.M[3] = [4]float64{0, 0, 0, 1}
 
 	r.data.Affine = affine
-	r.data.matrixToOrientation(affine)
+	r.data.MatrixToOrientation(affine)
 
 	return nil
 }

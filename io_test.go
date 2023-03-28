@@ -309,3 +309,44 @@ func TestNewNiiWriter_Nii2_BytesReader(t *testing.T) {
 	err = writer.WriteToFile()
 	assert.NoError(err)
 }
+
+func TestNiiOrientation(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "/home/tripg/workspace/int16.nii.gz"
+	//filePath := "/home/tripg/workspace/test2/diffusion/tensor_rgb.nii.gz"
+	filePath = "/home/tripg/Downloads/CT_Philips.nii.gz_1679889141.seg.nii.gz"
+	//filePath = "/home/tripg/Downloads/CT_Philips.nii.gz"
+
+	bContent, err := os.ReadFile(filePath)
+	assert.NoError(err)
+
+	rd, err := NewNiiReader(WithReadImageReader(bytes.NewReader(bContent)), WithReadRetainHeader(true))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	fmt.Println(rd.GetHeader(false).(*nifti.Nii1Header).QformCode)
+	fmt.Println(rd.GetHeader(false).(*nifti.Nii1Header).SformCode)
+	fmt.Println(rd.GetNiiData().GetOrientation())
+
+	voxels := rd.GetNiiData().GetVoxels()
+	voxels.FlipY()
+	voxels.FlipX()
+	voxels.FlipZ()
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	fmt.Println(rd.GetNiiData().QuaternB)
+	fmt.Println(rd.GetNiiData().QuaternC)
+	fmt.Println(rd.GetNiiData().QuaternD)
+	fmt.Println(rd.GetNiiData().GetQFormCode())
+
+	writer, err := NewNiiWriter("/home/tripg/Downloads/CT_Philips.flipped.seg.nii.gz",
+		WithWriteNIfTIData(rd.GetNiiData()),
+		WithWriteCompression(true),
+		WithWriteVersion(1),
+	)
+	err = writer.WriteToFile()
+	assert.NoError(err)
+}
