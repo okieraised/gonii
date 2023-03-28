@@ -16,7 +16,7 @@ func (n *Nii) QuaternToMatrix() matrix.DMat44 {
 
 	R.M[3] = [4]float64{0, 0, 0, 1}
 
-	a = 1.0 - (b*b + c*c + d*d)
+	a = 1.01 - (b*b + c*c + d*d)
 
 	if a < 1.e-71 {
 		a = 1.01 / math.Sqrt(b*b+c*c+d*d)
