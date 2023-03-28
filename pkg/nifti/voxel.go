@@ -12,6 +12,7 @@ type Voxels struct {
 	datatype               int32
 }
 
+// NewVoxels returns a pointer to the Voxels with specified input parameters
 func NewVoxels(dimX, dimY, dimZ, dimT int64, datatype int32) *Voxels {
 	voxel := make([]float64, dimX*dimY*dimZ*dimT)
 	return &Voxels{

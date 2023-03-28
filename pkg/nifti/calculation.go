@@ -5,8 +5,8 @@ import (
 	"math"
 )
 
-// quaternToMatrix returns the transformation matrix from the quaternion parameters
-func (n *Nii) quaternToMatrix() matrix.DMat44 {
+// QuaternToMatrix returns the transformation matrix from the quaternion parameters
+func (n *Nii) QuaternToMatrix() matrix.DMat44 {
 	var R matrix.DMat44
 
 	var b = n.QuaternB
@@ -66,7 +66,8 @@ func (n *Nii) quaternToMatrix() matrix.DMat44 {
 	return R
 }
 
-func (n *Nii) matrixToQuatern(R matrix.DMat44) {
+// MatrixToQuatern computes the quaternion parameters (quatern_b, quatern_c, quatern_d) from the input matrix
+func (n *Nii) MatrixToQuatern(R matrix.DMat44) {
 	var r11, r12, r13, r21, r22, r23, r31, r32, r33 float64
 	var xd, yd, zd, a, b, c, d float64
 
@@ -212,7 +213,8 @@ func (n *Nii) matrixToQuatern(R matrix.DMat44) {
 	n.QuaternD = d
 }
 
-func (n *Nii) matrixToOrientation(R matrix.DMat44) {
+// MatrixToOrientation computes the orientation of the image
+func (n *Nii) MatrixToOrientation(R matrix.DMat44) {
 	var xi, xj, xk, yi, yj, yk, zi, zj, zk, val, detQ, detP float64
 	var P, Q, M matrix.DMat33
 	var i, j, p, q, r, ibest, jbest, kbest, pbest, qbest, rbest int32
