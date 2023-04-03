@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -189,4 +190,49 @@ func TestSegmentation_Annotation2(t *testing.T) {
 	assert.NoError(err)
 
 	fmt.Println(len(b))
+}
+
+func TestSegmentation_Annotation3(t *testing.T) {
+
+	y := []float64{1, 3, 4, 6, 8, 2, 532, 6234, 5, 75, 75, 656}
+	var res string
+	for _, e := range y {
+		res += fmt.Sprintf("%d ", int(e))
+	}
+
+	fmt.Println("res", strings.TrimSpace(res))
+}
+
+func TestSegmentation_Annotation4(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "/home/tripg/Downloads/annot_import/CT_Abdo.1680080052.TSK-7.seg.nii.gz"
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(true))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	voxels := rd.GetNiiData().GetVoxels()
+	//voxels.FlipX()
+	//voxels.FlipY()
+	//voxels.FlipZ()
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	segments, err := rd.GetNiiData().GetVoxels().ImportAsRLE()
+	assert.NoError(err)
+
+	voxels, err = rd.GetNiiData().GetVoxels().ExportSingleFromRLE(segments)
+	assert.NoError(err)
+
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	writer, err := NewNiiWriter("/home/tripg/Downloads/reexport.nii.gz",
+		WithWriteNIfTIData(rd.GetNiiData()),
+		WithWriteCompression(true),
+	)
+	err = writer.WriteToFile()
+	assert.NoError(err)
+
 }
