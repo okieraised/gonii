@@ -226,7 +226,7 @@ func (v *Voxels) ImportAsRLE() ([]SegmentRLE, error) {
 
 				for idx, voxVal := range sliceData {
 					if voxVal == key {
-						keyArr[idx] = key
+						keyArr[len(sliceData)-idx-1] = key
 					}
 				}
 				encoded, err := RLEEncode(keyArr)
