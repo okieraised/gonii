@@ -26,7 +26,7 @@ func NewVoxels(dimX, dimY, dimZ, dimT int64, datatype int32) *Voxels {
 }
 
 // Flip flips the image along the specified axes
-func (v *Voxels) Flip(flipX, flipY, flipZ bool) {
+func (v *Voxels) Flip(flipX, flipY, flipZ bool) *Voxels {
 	if flipX {
 		v.FlipX()
 	}
@@ -36,6 +36,8 @@ func (v *Voxels) Flip(flipX, flipY, flipZ bool) {
 	if flipZ {
 		v.FlipZ()
 	}
+
+	return v
 }
 
 // FlipSagittal flips the image along Sagittal-axis (Y-Z)
@@ -141,10 +143,10 @@ func (v *Voxels) GetDimT() int64 {
 
 // GetSlice returns the values of voxel as a 1-D slice of float64 calculated from z, t input
 func (v *Voxels) GetSlice(z, t int64) []float64 {
-	res := make([]float64, 0)
+	res := make([]float64, v.dimX*v.dimY)
 	for x := int64(0); x < v.dimX; x++ {
 		for y := int64(0); y < v.dimY; y++ {
-			res = append(res, v.Get(x, y, z, t))
+			res[y*v.dimX+x] = v.Get(x, y, z, t)
 		}
 	}
 	return res
@@ -196,7 +198,6 @@ func (v *Voxels) Histogram(bins int) (utils.Histogram, error) {
 
 // RLEEncode encodes the 1-D float64 array using the RLE encoding
 func (v *Voxels) RLEEncode() ([]float64, error) {
-	//v.voxel = []float64{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 	return RLEEncode(v.voxel)
 }
 
@@ -222,6 +223,7 @@ func (v *Voxels) ImportAsRLE() ([]SegmentRLE, error) {
 					continue
 				}
 				keyArr := make([]float64, len(sliceData))
+
 				for idx, voxVal := range sliceData {
 					if voxVal == key {
 						keyArr[idx] = key
