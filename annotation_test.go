@@ -213,9 +213,9 @@ func TestSegmentation_Annotation4(t *testing.T) {
 	assert.NoError(err)
 
 	voxels := rd.GetNiiData().GetVoxels()
-	//voxels.FlipX()
-	//voxels.FlipY()
-	//voxels.FlipZ()
+	voxels.FlipX()
+	voxels.FlipY()
+	voxels.FlipZ()
 	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
 	assert.NoError(err)
 
