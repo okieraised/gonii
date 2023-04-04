@@ -15,7 +15,7 @@ func DeflateGzip(b []byte) ([]byte, error) {
 	defer g.Close()
 
 	p, err := io.ReadAll(g)
-	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+	if err != nil {
 		return nil, err
 	}
 
