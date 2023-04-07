@@ -234,6 +234,11 @@ func (v *Voxels) ImportAsRLE() ([]SegmentRLE, error) {
 					return nil, err
 				}
 
+				// Skip zero-only segment since they do not contain any segmentation
+				if len(encoded) == 1 && encoded[0] == float64(v.dimX*v.dimY) {
+					continue
+				}
+
 				encodedSegment := SegmentRLE{
 					EncodedSeg: encoded,
 					DecodedSeg: sliceData,
