@@ -236,3 +236,41 @@ func TestSegmentation_Annotation4(t *testing.T) {
 	assert.NoError(err)
 
 }
+
+func TestSegmentation_Annotation5(t *testing.T) {
+	assert := assert.New(t)
+
+	filePath := "/home/tripg/Downloads/annot_import/CT_Abdo.1680080052.TSK-7.seg.nii.gz"
+	rd, err := NewNiiReader(WithReadImageFile(filePath), WithReadRetainHeader(true))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	voxels := rd.GetNiiData().GetVoxels()
+	voxels.FlipX()
+	voxels.FlipY()
+	voxels.FlipZ()
+	err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	segments, err := rd.GetNiiData().GetVoxels().ImportAsRLE()
+	assert.NoError(err)
+
+	for _, segment := range segments {
+		fmt.Println(segment.EncodedSeg)
+	}
+
+	//voxels, err = rd.GetNiiData().GetVoxels().ExportSingleFromRLE(segments)
+	//assert.NoError(err)
+	//
+	//err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	//assert.NoError(err)
+	//
+	//writer, err := NewNiiWriter("/home/tripg/Downloads/reexport.nii.gz",
+	//	WithWriteNIfTIData(rd.GetNiiData()),
+	//	WithWriteCompression(true),
+	//)
+	//err = writer.WriteToFile()
+	//assert.NoError(err)
+
+}
