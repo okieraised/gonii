@@ -251,6 +251,7 @@ func (n *Nii) GetAt(x, y, z, t int64) float64 {
 		}
 		value = float64(math.Float32frombits(v))
 	case 4: // This fits Uint32
+		//fmt.Println("got here", n.ByteOrder, n.Datatype)
 		var v uint32
 		switch n.ByteOrder {
 		case binary.LittleEndian:

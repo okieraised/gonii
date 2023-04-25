@@ -350,3 +350,47 @@ func TestNiiOrientation(t *testing.T) {
 	err = writer.WriteToFile()
 	assert.NoError(err)
 }
+
+func TestNii(t *testing.T) {
+	assert := assert.New(t)
+	filePath := "/home/tripg/Downloads/n5_NIFTI_2023-04-25 06 38 50/TSK-2/problem_1682404737_TSK-2/problem_1682404737_TSK-2.seg.nii.gz"
+	filePath = "/home/tripg/workspace/nifti/problem.nii.gz"
+
+	bContent, err := os.ReadFile(filePath)
+	assert.NoError(err)
+
+	rd, err := NewNiiReader(WithReadImageReader(bytes.NewReader(bContent)), WithReadRetainHeader(true))
+	assert.NoError(err)
+	err = rd.Parse()
+	assert.NoError(err)
+
+	//fmt.Println(rd.GetHeader(false).(*nifti.Nii1Header).QformCode)
+	fmt.Println(rd.GetHeader(false).(*nifti.Nii1Header))
+	//fmt.Println(rd.GetNiiData().GetOrientation())
+	fmt.Println(rd.GetNiiData().GetDatatype())
+	//return
+	//voxels := rd.GetNiiData().GetVoxels()
+	//voxels.FlipY()
+	//voxels.FlipX()
+	//voxels.FlipZ()
+	//err = rd.GetNiiData().SetVoxelToRawVolume(voxels)
+	assert.NoError(err)
+
+	fmt.Println(rd.GetNiiData().GetAt(81, 117, 158, 0)) // 46959.644
+	return
+
+	fmt.Println(rd.GetNiiData().GetVoxels().MapValueOccurrence())
+
+	//fmt.Println(rd.GetNiiData().QuaternB)
+	//fmt.Println(rd.GetNiiData().QuaternC)
+	//fmt.Println(rd.GetNiiData().QuaternD)
+	//fmt.Println(rd.GetNiiData().GetQFormCode())
+
+	//writer, err := NewNiiWriter("/home/tripg/Downloads/CT_Philips.flipped.seg.nii.gz",
+	//	WithWriteNIfTIData(rd.GetNiiData()),
+	//	WithWriteCompression(true),
+	//	WithWriteVersion(1),
+	//)
+	//err = writer.WriteToFile()
+	//assert.NoError(err)
+}
