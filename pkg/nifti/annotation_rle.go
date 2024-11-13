@@ -59,8 +59,7 @@ func (a *SegmentRLE) Decode() {
 	var deflatedSegment []float64
 
 	for idx, segmentLength := range a.EncodedSeg {
-		var s []float64
-		s = make([]float64, int(segmentLength))
+		s := make([]float64, int(segmentLength))
 		if idx%2 == 0 {
 			for i := range s {
 				s[i] = 0

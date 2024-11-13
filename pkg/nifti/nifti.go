@@ -4,9 +4,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/okieraised/gonii/pkg/matrix"
 	"math"
 	"strings"
+
+	"github.com/okieraised/gonii/pkg/matrix"
 )
 
 // Nii defines the structure of the NIFTI-1 data for I/O purpose
@@ -387,7 +388,7 @@ func (n *Nii) GetAffine() matrix.DMat44 {
 func (n *Nii) GetImgShape() [4]int64 {
 	dim := [4]int64{}
 
-	for index, _ := range dim {
+	for index := range dim {
 		dim[index] = n.Dim[index+1]
 	}
 	return dim
@@ -396,7 +397,7 @@ func (n *Nii) GetImgShape() [4]int64 {
 // GetVoxelSize returns the voxel size of the image
 func (n *Nii) GetVoxelSize() [4]float64 {
 	size := [4]float64{}
-	for index, _ := range size {
+	for index := range size {
 		size[index] = n.PixDim[index+1]
 	}
 	return size
@@ -652,8 +653,8 @@ func (n *Nii) SetSclInter(sclInter float64) {
 }
 
 // SetPixDim sets the PixDim parameter
-func (n *Nii) SetPixDim() [8]float64 {
-	return n.PixDim
+func (n *Nii) SetPixDim(pixDim [8]float64) {
+	n.PixDim = pixDim
 }
 
 // SetDim sets the Dim parameter
@@ -774,7 +775,7 @@ func (n *Nii) SetAt(newVal float64, x, y, z, t int64) error {
 
 // SetVoxelToRawVolume converts the 1-D slice of float64 back to byte array
 func (n *Nii) SetVoxelToRawVolume(vox *Voxels) error {
-	result := make([]byte, vox.GetRawByteSize(), vox.GetRawByteSize())
+	result := make([]byte, vox.GetRawByteSize())
 	nByPer := n.NByPer
 
 	for index, voxel := range vox.voxel {

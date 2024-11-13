@@ -5,9 +5,10 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"os"
+
 	"github.com/okieraised/gonii/internal/system"
 	"github.com/okieraised/gonii/pkg/nifti"
-	"os"
 )
 
 type Segmentation struct {

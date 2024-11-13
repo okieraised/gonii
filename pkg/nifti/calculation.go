@@ -1,8 +1,9 @@
 package nifti
 
 import (
-	"github.com/okieraised/gonii/pkg/matrix"
 	"math"
+
+	"github.com/okieraised/gonii/pkg/matrix"
 )
 
 // QuaternToMatrix returns the transformation matrix from the quaternion parameters

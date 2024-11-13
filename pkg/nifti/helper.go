@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	gzip "github.com/klauspost/pgzip"
-	"github.com/okieraised/gonii/internal/system"
 	"math"
 	"os"
+
+	gzip "github.com/klauspost/pgzip"
+	"github.com/okieraised/gonii/internal/system"
 )
 
 // IsValidDatatype checks whether the datatype is valid for NIFTI format
@@ -499,6 +500,66 @@ func MakeNewNii2Header(inDim *[8]int64, inDatatype int32) *Nii2Header {
 	return header
 }
 
+func MakeNewNiiImageFromHdr(hdr interface{}) (*Nii, error) {
+	var img Nii
+	switch h := hdr.(type) {
+	case *Nii1Header:
+		img.PixDim = [8]float64{
+			float64(h.Pixdim[0]),
+			float64(h.Pixdim[1]),
+			float64(h.Pixdim[2]),
+			float64(h.Pixdim[3]),
+			float64(h.Pixdim[4]),
+			float64(h.Pixdim[5]),
+			float64(h.Pixdim[6]),
+			float64(h.Pixdim[7]),
+		}
+		img.Dim = [8]int64{
+			int64(h.Dim[0]),
+			int64(h.Dim[1]),
+			int64(h.Dim[2]),
+			int64(h.Dim[3]),
+			int64(h.Dim[4]),
+			int64(h.Dim[5]),
+			int64(h.Dim[6]),
+			int64(h.Dim[7]),
+		}
+		img.NDim = int64(h.Dim[0])
+		img.Nx = int64(h.Dim[1])
+		img.Ny = int64(h.Dim[2])
+		img.Nz = int64(h.Dim[3])
+		img.Nt = int64(h.Dim[4])
+		img.Nu = int64(h.Dim[5])
+		img.Nv = int64(h.Dim[6])
+		img.Nw = int64(h.Dim[7])
+		img.Datatype = int32(h.Datatype)
+		img.ByteOrder = binary.LittleEndian
+		img.SclSlope = float64(h.SclSlope)
+		img.SclInter = float64(h.SclInter)
+		img.VoxOffset = float64(h.VoxOffset)
+	case *Nii2Header:
+		img.PixDim = h.Pixdim
+		img.Dim = h.Dim
+		img.NDim = h.Dim[0]
+		img.Nx = h.Dim[1]
+		img.Ny = h.Dim[2]
+		img.Nz = h.Dim[3]
+		img.Nt = h.Dim[4]
+		img.Nu = h.Dim[5]
+		img.Nv = h.Dim[6]
+		img.Nw = h.Dim[7]
+		img.Datatype = int32(h.Datatype)
+		img.ByteOrder = binary.LittleEndian
+		img.SclSlope = h.SclSlope
+		img.SclInter = h.SclInter
+		img.VoxOffset = float64(h.VoxOffset)
+	default:
+		return nil, fmt.Errorf("unknown header type")
+	}
+
+	return &img, nil
+}
+
 // MakeEmptyImageFromImg returns a zero-filled byte slice from existing Nii image structure
 func MakeEmptyImageFromImg(img *Nii) ([]byte, error) {
 	var bDataLength int64
@@ -536,7 +597,7 @@ func MakeEmptyImageFromImg(img *Nii) ([]byte, error) {
 	bDataLength = bDataLength * int64(nByper)
 
 	// Init a slice of bytes with capacity of bDataLength and initial value of 0
-	bData := make([]byte, bDataLength, bDataLength)
+	bData := make([]byte, bDataLength)
 
 	return bData, nil
 }
@@ -555,7 +616,7 @@ func MakeEmptyImageFromHdr(hdr *Nii1Header) ([]byte, error) {
 	if hdr.Dim[2] == 0 {
 		return nil, errors.New("y dimension must not be zero")
 	}
-	bDataLength = int64(hdr.Dim[1] * hdr.Dim[2])
+	bDataLength = int64(hdr.Dim[1]) * int64(hdr.Dim[2])
 
 	if hdr.Dim[3] > 0 {
 		bDataLength = bDataLength * int64(hdr.Dim[3])
@@ -577,7 +638,7 @@ func MakeEmptyImageFromHdr(hdr *Nii1Header) ([]byte, error) {
 	bDataLength = bDataLength * int64(nByper)
 
 	// Init a slice of bytes with capacity of bDataLength and initial value of 0
-	bData := make([]byte, bDataLength, bDataLength)
+	bData := make([]byte, bDataLength)
 
 	return bData, nil
 }

@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/okieraised/gonii/pkg/matrix"
 	"github.com/okieraised/gonii/pkg/nifti"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
 )
 
 func TestNewNiiReader_1(t *testing.T) {

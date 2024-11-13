@@ -5,8 +5,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/okieraised/gonii/pkg/matrix"
 	"io"
+
+	"github.com/okieraised/gonii/pkg/matrix"
 )
 
 type Reader interface {

@@ -3,10 +3,11 @@ package gonii
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/okieraised/gonii/internal/utils"
-	"github.com/okieraised/gonii/pkg/nifti"
 	"net/http"
 	"os"
+
+	"github.com/okieraised/gonii/internal/utils"
+	"github.com/okieraised/gonii/pkg/nifti"
 )
 
 //----------------------------------------------------------------------------------------------------------------------

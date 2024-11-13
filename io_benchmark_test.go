@@ -1,9 +1,10 @@
 package gonii
 
 import (
+	"testing"
+
 	"github.com/okieraised/gonii/internal/utils"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_ReaderProfiling_90MBCompressed(t *testing.T) {

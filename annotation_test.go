@@ -3,11 +3,12 @@ package gonii
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/okieraised/gonii/pkg/nifti"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/okieraised/gonii/pkg/nifti"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewSegmentation_Json_1(t *testing.T) {
